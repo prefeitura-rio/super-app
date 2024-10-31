@@ -109,7 +109,7 @@ export default function ProjectDetails() {
     }
 
     initializeData()
-  }, [id, setValue])
+  }, [cameras, id, setSelectedCameras, setValue])
 
   async function onSubmit(data: ProjectForm) {
     await updateProjectAction({

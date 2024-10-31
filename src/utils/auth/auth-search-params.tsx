@@ -1,10 +1,11 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
 import { authRedirect } from './auth-redirect'
 
-export function AuthWithSearchParams() {
+function GetSearchParamsAndVerifyAuth() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
@@ -16,4 +17,12 @@ export function AuthWithSearchParams() {
   })
 
   return null
+}
+
+export function AuthWithSearchParams() {
+  return (
+    <Suspense>
+      <GetSearchParamsAndVerifyAuth />
+    </Suspense>
+  )
 }

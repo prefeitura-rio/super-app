@@ -20,7 +20,7 @@ export default function Map({ mapboxAccessToken }: MapProps) {
   const {
     layers: {
       cameras: { layers, hoverInfo },
-      aisp: { layers: aispLayers },
+      AISP: { layers: AISPLayers },
     },
     viewState,
     setViewState,
@@ -40,7 +40,7 @@ export default function Map({ mapboxAccessToken }: MapProps) {
       <DeckGL
         initialViewState={viewState}
         controller={true}
-        layers={[...aispLayers, ...layers]}
+        layers={[...AISPLayers, ...layers]}
         viewState={viewState}
         onViewStateChange={onViewStateChange}
         getCursor={({ isDragging, isHovering }) => {
