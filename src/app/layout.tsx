@@ -4,6 +4,8 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Toaster } from 'sonner'
 
+import { AuthWithSearchParams } from '@/utils/auth/auth-search-params'
+
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -30,6 +32,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
       >
+        <AuthWithSearchParams />
         {children}
         <Toaster closeButton duration={15000} />
       </body>

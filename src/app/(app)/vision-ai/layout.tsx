@@ -3,7 +3,7 @@ import { env } from '@/env'
 
 import Map from './components/map'
 
-export default function Layout({
+export default async function Layout({
   children,
 }: Readonly<{
   children: React.ReactNode

@@ -5,19 +5,27 @@ import { redirect } from 'next/navigation'
 
 const publicPaths = ['/auth']
 
-interface AuthRedirectWrapperProps {
+interface AuthRedirectProps {
   pathname: string
+  token: string | null
 }
 
-export async function authRedirect({ pathname }: AuthRedirectWrapperProps) {
+export async function authRedirect({ pathname, token }: AuthRedirectProps) {
   const cookieStore = await cookies()
   const isAuthenticated = !!cookieStore.get('token')
 
-  if (isAuthenticated && publicPaths.includes(pathname)) {
+  if (
+    (isAuthenticated || token) &&
+    publicPaths.some((authorizedPath) => pathname.startsWith(authorizedPath))
+  ) {
     redirect('/')
   }
 
-  if (!isAuthenticated && !publicPaths.includes(pathname)) {
+  if (
+    !isAuthenticated &&
+    !token &&
+    !publicPaths.some((authorizedPath) => pathname.startsWith(authorizedPath))
+  ) {
     redirect('/auth/sign-in')
   }
 }
