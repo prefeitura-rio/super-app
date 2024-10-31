@@ -4,13 +4,13 @@ import { type PickingInfo, WebMercatorViewport } from '@deck.gl/core'
 import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
-import type { Camera } from '@/models/entities'
+import type { AISP, Camera } from '@/models/entities'
 
 import { Card } from '../ui/card'
 
 interface MapHoverCardProps {
   children?: ReactNode
-  hoveredObject: PickingInfo<Camera> | null
+  hoveredObject: PickingInfo<Camera | AISP> | null
   setIsHoveringInfoCard: (value: boolean) => void
   className?: string
 }

@@ -1,24 +1,34 @@
-import type { PickingInfo } from '@deck.gl/core'
+import { useContext } from 'react'
 
-import type { Camera } from '@/models/entities'
+import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 
-interface TooltipProps {
-  info?: PickingInfo<Camera> | null
-}
-export function Tooltip({ info }: TooltipProps) {
-  if (info && info.object) {
-    const top = info.y
-    const left = info.x
+import { AISPHoverCard } from './components/aisp-hover-card'
+import { CameraHoverCard } from './components/camera-hover-card'
 
-    return (
-      <div
-        className="z-10 absolute pointer-events-none bg-card p-2 rounded-lg"
-        style={{ top, left }}
-      >
-        <span>{info.object.name}</span>
-      </div>
-    )
-  }
+export function Tooltips() {
+  const {
+    layers: {
+      cameras: {
+        hoverInfo: cameraHoverInfo,
+        setIsHoveringInfoCard: setIsHoveringCameraInfoCard,
+      },
+      aisp: {
+        hoverInfo: AISPHoverInfo,
+        setIsHoveringInfoCard: setIsHoveringAISPInfoCard,
+      },
+    },
+  } = useContext(VisionAIMapContext)
 
-  return null
+  return (
+    <>
+      <CameraHoverCard
+        hoveredObject={cameraHoverInfo}
+        setIsHoveringInfoCard={setIsHoveringCameraInfoCard}
+      />
+      <AISPHoverCard
+        hoveredObject={AISPHoverInfo}
+        setIsHoveringInfoCard={setIsHoveringAISPInfoCard}
+      />
+    </>
+  )
 }

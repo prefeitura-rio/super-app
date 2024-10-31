@@ -22,12 +22,15 @@ export interface UseCameraLayer {
   setSelectedCameras: (cameras: Camera[]) => void
   setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
   layers: LayersList
+  isVisible: boolean
+  setIsVisible: (isVisible: boolean) => void
 }
 export function useCameraLayer(): UseCameraLayer {
   const [hoverInfo, setHoverInfo] = useState<PickingInfo<Camera> | null>(null)
   const [selectedCameras, setSelectedCameras] = useState<Camera[]>([])
   const [cameras, setCameras] = useState<Camera[]>([])
   const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
     const fetchCameras = async () => {
@@ -46,7 +49,7 @@ export function useCameraLayer(): UseCameraLayer {
         getSize: 24,
         autoHighlight: true,
         highlightColor: [7, 76, 128, 250], // CIVITAS-dark-blue
-        visible: true,
+        visible: isVisible,
         iconAtlas: cameraIconAtlas.src,
         iconMapping: {
           default: {
@@ -87,7 +90,7 @@ export function useCameraLayer(): UseCameraLayer {
         },
       }),
 
-    [selectedCameras, cameras],
+    [cameras, isVisible, selectedCameras, isHoveringInfoCard],
   )
 
   return {
@@ -98,5 +101,7 @@ export function useCameraLayer(): UseCameraLayer {
     setSelectedCameras,
     setIsHoveringInfoCard,
     layers: [baseLayer],
+    isVisible,
+    setIsVisible,
   }
 }
