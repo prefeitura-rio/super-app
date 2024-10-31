@@ -8,12 +8,14 @@ import {
   type UseCameraLayer,
   useCameraLayer,
 } from '@/hooks/map-layers/camera-layer'
+import { type UseCISPLayer, useCISPLayer } from '@/hooks/map-layers/CISP-layer'
 import { RIO_VIEWSTATE } from '@/utils/map/rio-viewstate'
 
 interface VisionAIMapContextProps {
   layers: {
     cameras: UseCameraLayer
-    aisp: UseAISPLayer
+    AISP: UseAISPLayer
+    CISP: UseCISPLayer
   }
   viewState: MapViewState
   setViewState: (viewState: MapViewState) => void
@@ -28,7 +30,9 @@ export function VisionAIMapContextProvider({
   children: React.ReactNode
 }) {
   const cameras = useCameraLayer()
-  const aisp = useAISPLayer()
+  const AISP = useAISPLayer()
+  const CISP = useCISPLayer()
+
   const [viewState, setViewState] = useState<MapViewState>(RIO_VIEWSTATE)
 
   const flyTo = useCallback((destination: Partial<MapViewState>) => {
@@ -45,7 +49,8 @@ export function VisionAIMapContextProvider({
       value={{
         layers: {
           cameras,
-          aisp,
+          AISP,
+          CISP,
         },
         viewState,
         setViewState,

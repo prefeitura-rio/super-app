@@ -4,6 +4,7 @@ import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 
 import { AISPHoverCard } from './components/aisp-hover-card'
 import { CameraHoverCard } from './components/camera-hover-card'
+import { CISPHoverCard } from './components/cisp-hover-card'
 
 export function Tooltips() {
   const {
@@ -12,9 +13,13 @@ export function Tooltips() {
         hoverInfo: cameraHoverInfo,
         setIsHoveringInfoCard: setIsHoveringCameraInfoCard,
       },
-      aisp: {
+      AISP: {
         hoverInfo: AISPHoverInfo,
         setIsHoveringInfoCard: setIsHoveringAISPInfoCard,
+      },
+      CISP: {
+        hoverInfo: CISPHoverInfo,
+        setIsHoveringInfoCard: setIsHoveringCISPInfoCard,
       },
     },
   } = useContext(VisionAIMapContext)
@@ -28,6 +33,10 @@ export function Tooltips() {
       <AISPHoverCard
         hoveredObject={AISPHoverInfo}
         setIsHoveringInfoCard={setIsHoveringAISPInfoCard}
+      />
+      <CISPHoverCard
+        hoveredObject={CISPHoverInfo}
+        setIsHoveringInfoCard={setIsHoveringCISPInfoCard}
       />
     </>
   )

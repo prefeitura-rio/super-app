@@ -30,7 +30,8 @@ export function LayerToggle() {
         isVisible: isCamerasVisible,
         setIsVisible: setIsCamerasVisible,
       },
-      aisp: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
+      AISP: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
+      CISP: { isVisible: isCISPVisible, setIsVisible: setIsCISPVisible },
     },
   } = useContext(VisionAIMapContext)
 
@@ -46,6 +47,12 @@ export function LayerToggle() {
       icon: <Shield />,
       isVisible: isAISPVisible,
       setIsVisible: setIsAISPVisible,
+    },
+    {
+      name: 'CISP',
+      icon: <Shield />,
+      isVisible: isCISPVisible,
+      setIsVisible: setIsCISPVisible,
     },
   ]
 
