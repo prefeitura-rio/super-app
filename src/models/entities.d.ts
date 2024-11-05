@@ -32,7 +32,6 @@ export type RawProject = {
 export type Project = {
   id: string
   name: string
-  description: string
   model: string
   model_config: Record<string, string>[] | null
   camera_ids: string[]

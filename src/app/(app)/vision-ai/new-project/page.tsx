@@ -130,10 +130,6 @@ export default function Page() {
             </div>
             <Input id="name" {...register('name')} />
           </div>
-          {/* <div className="flex flex-col gap-1">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea id="description" {...register('description')} />
-          </div> */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="model">Modelo</Label>

@@ -37,7 +37,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 import type { Model, NotificationChannel, Project } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
@@ -102,23 +101,24 @@ export default function ProjectDetails() {
         setProject(projectsResponse)
 
         setValue('name', projectsResponse.name)
-        setValue('description', projectsResponse.description)
         setValue('model', projectsResponse.model)
         setValue('enabled', projectsResponse.enabled)
 
-        const notificationChannel = channels.find(
-          (channel) => channel.id === projectsResponse?.discord_webhook_id,
+        console.log({ channels })
+        console.log({ projectsResponse })
+        const channel = channels.find(
+          (channel) => channel.id === projectsResponse.discord_webhook_id,
         )
-
-        if (notificationChannel) {
-          setValue('notificationChannel', notificationChannel)
-        }
+        console.log({ channel })
+        if (!channel) throw new Error('Canal de notificação não encontrado')
+        setValue('notificationChannel', channel?.name)
 
         setSelectedCameras(
           cameras.filter((camera) =>
             projectsResponse.camera_ids.includes(camera.id),
           ),
         )
+
         setLoading(false)
       } else {
         await handleRedirect()
@@ -129,19 +129,26 @@ export default function ProjectDetails() {
   }, [cameras, id, setSelectedCameras, setValue])
 
   async function onSubmit(data: ProjectForm) {
+    const channel = notificationChannels?.find(
+      (channel) => channel.name === data.notificationChannel,
+    )
+    if (!channel) throw new Error('Canal de notificação não encontrado')
+
     await updateProjectAction({
       id,
       name: data.name,
       model: data.model,
       cameras_id: selectedCameras.map((camera) => camera.id),
       enable: data.enabled,
-      discord_webhook_id: data.notificationChannel.id,
-      discord_webhook_token: data.notificationChannel.token,
+      discord_webhook_id: channel.id,
+      discord_webhook_token: channel.token,
+      time_start: data.startTime?.toISOString(),
+      time_end: data.endTime?.toISOString(),
     })
   }
 
   return loading ? (
-    <Spinner />
+    <Spinner className="mx-auto mt-10 size-6" />
   ) : (
     <form
       className="flex flex-col gap-2 h-screen max-h-screen px-4 py-2"
@@ -162,7 +169,7 @@ export default function ProjectDetails() {
           </BreadcrumbList>
         </Breadcrumb>
         <h3 className="mt-4 mb-2 text-2xl font-bold">Editar Projeto</h3>
-        <div className="flex flex-col gap-2 h-full">
+        <div className="flex flex-col gap-4 h-full">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="name">Nome</Label>
@@ -173,10 +180,6 @@ export default function ProjectDetails() {
               )}
             </div>
             <Input id="name" {...register('name')} />
-          </div>
-          <div className="flex flex-col gap-1">
-            <Label htmlFor="description">Descrição</Label>
-            <Textarea id="description" {...register('description')} />
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
@@ -196,7 +199,7 @@ export default function ProjectDetails() {
                   defaultValue={field.value}
                 >
                   <SelectTrigger id="model" className="w-full">
-                    <SelectValue placeholder="Selecione um modelo" />
+                    <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -229,17 +232,11 @@ export default function ProjectDetails() {
               name="notificationChannel"
               render={({ field }) => (
                 <Select
-                  onValueChange={(e) =>
-                    field.onChange(
-                      notificationChannels?.find(
-                        (channel) => channel.name === e,
-                      ),
-                    )
-                  }
-                  defaultValue={field.value.name}
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
                 >
                   <SelectTrigger id="notificationChannel" className="w-full">
-                    <SelectValue placeholder="Selecione um canal de notificação" />
+                    <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>

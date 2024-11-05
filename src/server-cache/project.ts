@@ -9,11 +9,9 @@ export async function getProjectAction(id: string) {
 
     const rawProject: RawProject = await data.json()
 
-    // Improve attribute names and structure
     const project: Project = {
       id: rawProject.id,
       name: rawProject.name,
-      description: rawProject.model,
       model: rawProject.model,
       camera_ids: rawProject.cameras_id,
       model_config: rawProject.model_config,
