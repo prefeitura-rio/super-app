@@ -16,6 +16,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -34,7 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 import { type Model, type NotificationChannel } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
@@ -62,7 +62,6 @@ export default function Page() {
     register,
     control,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<ProjectForm>({
     resolver: zodResolver(projectFormSchema),
@@ -72,12 +71,19 @@ export default function Page() {
   })
 
   async function onSubmit(data: ProjectForm) {
+    const channel = notificationChannels.find(
+      (c) => c.name === data.notificationChannel,
+    )
+    if (!channel) throw new Error('Canal de notificação não encontrado.')
+
     const project = await createProjectAction({
       name: data.name,
       model: data.model,
       cameras_id: selectedCameras.map((camera) => camera.id),
-      discord_webhook_id: data.notificationChannel.id,
-      discord_webhook_token: data.notificationChannel.token,
+      discord_webhook_id: channel.id,
+      discord_webhook_token: channel.token,
+      time_start: data.startTime?.toISOString(),
+      time_end: data.endTime?.toISOString(),
     })
     await redirect(`/vision-ai/project/${project.id}`)
   }
@@ -87,7 +93,6 @@ export default function Page() {
       getModelsAction().then((data) => setModels(data))
       getNotificationChannels().then((data) => {
         setNotificationChannels(data)
-        setValue('notificationChannel', data[0])
       })
     }
     initializeData()
@@ -113,7 +118,7 @@ export default function Page() {
           </BreadcrumbList>
         </Breadcrumb>
         <h3 className="mt-4 mb-2 text-2xl font-bold">Novo Projeto</h3>
-        <div className="flex flex-col gap-2 h-full">
+        <div className="flex flex-col gap-4 h-full">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="name">Nome</Label>
@@ -125,10 +130,10 @@ export default function Page() {
             </div>
             <Input id="name" {...register('name')} />
           </div>
-          <div className="flex flex-col gap-1">
+          {/* <div className="flex flex-col gap-1">
             <Label htmlFor="description">Descrição</Label>
             <Textarea id="description" {...register('description')} />
-          </div>
+          </div> */}
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="model">Modelo</Label>
@@ -147,7 +152,7 @@ export default function Page() {
                   defaultValue={field.value}
                 >
                   <SelectTrigger id="model" className="w-full">
-                    <SelectValue placeholder="Selecione um modelo" />
+                    <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -176,16 +181,11 @@ export default function Page() {
               name="notificationChannel"
               render={({ field }) => (
                 <Select
-                  onValueChange={(e) =>
-                    field.onChange(
-                      notificationChannels.find(
-                        (channel) => channel.name === e,
-                      ),
-                    )
-                  }
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
                 >
                   <SelectTrigger id="notificationChannel" className="w-full">
-                    <SelectValue placeholder="Selecione um canal de notificação" />
+                    <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -200,7 +200,41 @@ export default function Page() {
               )}
             />
           </div>
-          <div className="flex mt-4 flex-col gap-1 h-full">
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="startTime">Data de início</Label>
+              <Controller
+                control={control}
+                name="startTime"
+                render={({ field }) => (
+                  <DatePicker
+                    className="w-full"
+                    value={field.value}
+                    onChange={field.onChange}
+                    type="datetime-local"
+                    clearButton
+                  />
+                )}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="startTime">Data de fim</Label>
+              <Controller
+                control={control}
+                name="endTime"
+                render={({ field }) => (
+                  <DatePicker
+                    className="w-full"
+                    value={field.value}
+                    onChange={field.onChange}
+                    type="datetime-local"
+                    clearButton
+                  />
+                )}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 h-full">
             <Label>Câmeras Selecionadas</Label>
             <div className="h-full relative overflow-y-auto">
               <div className="absolute inset-0">
