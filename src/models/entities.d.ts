@@ -80,3 +80,9 @@ export type CISP = {
   celular: null
   nome: string
 }
+
+export type NotificationChannel = {
+  id: string
+  name: string
+  token: string
+}

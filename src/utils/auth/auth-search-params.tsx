@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 
 import { authRedirect } from './auth-redirect'
 
@@ -11,10 +11,12 @@ function GetSearchParamsAndVerifyAuth() {
 
   const token = searchParams.get('token')
 
-  authRedirect({
-    pathname,
-    token,
-  })
+  useEffect(() => {
+    authRedirect({
+      pathname,
+      token,
+    })
+  }, [pathname, token])
 
   return null
 }

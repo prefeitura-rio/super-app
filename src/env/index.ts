@@ -8,7 +8,7 @@ const envSchema = z.object({
   DISCORD_WEBHOOK_ID: z.string().min(1),
   DISCORD_WEBHOOK_TOKEN: z.string().min(1),
 })
-
+console.log({ env: process.env })
 const _env = envSchema.safeParse({
   VISION_AI_API_URL: process.env.VISION_AI_API_URL,
   GATEWAY_API_URL: process.env.GATEWAY_API_URL,

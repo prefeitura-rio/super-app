@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation'
 import { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import { getNotificationChannels } from '@/assets/get-notification-channels'
 import { Spinner } from '@/components/custom/spinner'
 import {
   Breadcrumb,
@@ -38,7 +39,7 @@ import {
 } from '@/components/ui/table'
 import { Textarea } from '@/components/ui/textarea'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
-import type { Model, Project } from '@/models/entities'
+import type { Model, NotificationChannel, Project } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
 import { getProjectAction } from '@/server-cache/project'
 import { setToastDataCookie } from '@/utils/others/cookie-handlers'
@@ -62,6 +63,9 @@ export default function ProjectDetails() {
   const id = pathname.replace('/vision-ai/project/', '')
   const [project, setProject] = useState<Project | undefined>(undefined)
   const [models, setModels] = useState<Model[] | undefined>(undefined)
+  const [notificationChannels, setNotificationChannels] = useState<
+    NotificationChannel[] | undefined
+  >(undefined)
 
   const {
     handleSubmit,
@@ -87,6 +91,10 @@ export default function ProjectDetails() {
       getModelsAction().then((data) => {
         setModels(data)
       })
+      const channels = await getNotificationChannels().then((data) => {
+        setNotificationChannels(data)
+        return data
+      })
 
       const projectsResponse = await getProjectAction(id)
 
@@ -97,6 +105,15 @@ export default function ProjectDetails() {
         setValue('description', projectsResponse.description)
         setValue('model', projectsResponse.model)
         setValue('enabled', projectsResponse.enabled)
+
+        const notificationChannel = channels.find(
+          (channel) => channel.id === projectsResponse?.discord_webhook_id,
+        )
+
+        if (notificationChannel) {
+          setValue('notificationChannel', notificationChannel)
+        }
+
         setSelectedCameras(
           cameras.filter((camera) =>
             projectsResponse.camera_ids.includes(camera.id),
@@ -118,6 +135,8 @@ export default function ProjectDetails() {
       model: data.model,
       cameras_id: selectedCameras.map((camera) => camera.id),
       enable: data.enabled,
+      discord_webhook_id: data.notificationChannel.id,
+      discord_webhook_token: data.notificationChannel.token,
     })
   }
 
@@ -125,10 +144,10 @@ export default function ProjectDetails() {
     <Spinner />
   ) : (
     <form
-      className="flex flex-col gap-2 h-full max-h-screen"
+      className="flex flex-col gap-2 h-screen max-h-screen px-4 py-2"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="h-full flex flex-col overflow-hidden">
+      <div className="flex flex-col h-full">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -143,7 +162,7 @@ export default function ProjectDetails() {
           </BreadcrumbList>
         </Breadcrumb>
         <h3 className="mt-4 mb-2 text-2xl font-bold">Editar Projeto</h3>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 h-full">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="name">Nome</Label>
@@ -196,6 +215,45 @@ export default function ProjectDetails() {
               )}
             />
           </div>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2 h-3.5">
+              <Label htmlFor="notificationChannel">Canal de Notificação</Label>
+              {errors.notificationChannel && (
+                <span className="text-xs text-destructive">
+                  {errors.notificationChannel.message}
+                </span>
+              )}
+            </div>
+            <Controller
+              control={control}
+              name="notificationChannel"
+              render={({ field }) => (
+                <Select
+                  onValueChange={(e) =>
+                    field.onChange(
+                      notificationChannels?.find(
+                        (channel) => channel.name === e,
+                      ),
+                    )
+                  }
+                  defaultValue={field.value.name}
+                >
+                  <SelectTrigger id="notificationChannel" className="w-full">
+                    <SelectValue placeholder="Selecione um canal de notificação" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {notificationChannels?.map((channel, index) => (
+                        <SelectItem key={index} value={channel.name}>
+                          {channel.name}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
           <div className="space-y-0.5 flex items-center gap-2">
             <Label htmlFor="active">Ativo</Label>
             <Controller
@@ -210,55 +268,61 @@ export default function ProjectDetails() {
               )}
             />
           </div>
-        </div>
-        <div className="flex mt-4 flex-col gap-1 flex-1 overflow-hidden">
-          <Label>Câmeras Selecionadas:</Label>
-          <div className="gap-1 flex flex-col overflow-y-scroll">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[100px]">ID</TableHead>
-                  <TableHead>Localidade</TableHead>
-                  <TableHead className="text-right"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {selectedCameras.map((camera, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{camera.id}</TableCell>
-                    <TableCell>{camera.name}</TableCell>
-                    <TableCell className="text-right flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        type="button"
-                        onClick={() =>
-                          flyTo({
-                            latitude: camera.latitude,
-                            longitude: camera.longitude,
-                            zoom: 16,
-                          })
-                        }
-                      >
-                        <Navigation className="shrink-0 size-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        type="button"
-                        onClick={() =>
-                          setSelectedCameras(
-                            selectedCameras.filter((c) => c.id !== camera.id),
-                          )
-                        }
-                      >
-                        <X className="size-3.5 shrink-0" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div className="flex mt-4 flex-col gap-1 h-full">
+            <Label>Câmeras Selecionadas:</Label>
+            <div className="h-full relative overflow-y-auto">
+              <div className="absolute inset-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">ID</TableHead>
+                      <TableHead>Localidade</TableHead>
+                      <TableHead className="text-right"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {selectedCameras.map((camera, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">
+                          {camera.id}
+                        </TableCell>
+                        <TableCell>{camera.name}</TableCell>
+                        <TableCell className="text-right flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            onClick={() =>
+                              flyTo({
+                                latitude: camera.latitude,
+                                longitude: camera.longitude,
+                                zoom: 16,
+                              })
+                            }
+                          >
+                            <Navigation className="shrink-0 size-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            type="button"
+                            onClick={() =>
+                              setSelectedCameras(
+                                selectedCameras.filter(
+                                  (c) => c.id !== camera.id,
+                                ),
+                              )
+                            }
+                          >
+                            <X className="size-3.5 shrink-0" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
