@@ -8,7 +8,7 @@ export const projectFormSchema = z.object({
   startTime: z.date().optional(),
   endTime: z.date().optional(),
   yolo_default_precision: z
-    .number()
+    .number({ message: 'Obrigatório' })
     .min(0, { message: 'Deve ser entre 0 e 1' })
     .max(1, { message: 'Deve ser entre 0 e 1' }),
   yolo_send_message: z.boolean().optional(),

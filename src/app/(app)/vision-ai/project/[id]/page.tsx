@@ -18,6 +18,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
+import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -112,13 +113,16 @@ export default function ProjectDetails() {
           'yolo_default_precision',
           projectsResponse.model_config.yolo_default_precision,
         )
+        if (projectsResponse.start_time) {
+          setValue('startTime', new Date(projectsResponse.start_time))
+        }
+        if (projectsResponse.end_time) {
+          setValue('endTime', new Date(projectsResponse.end_time))
+        }
 
-        console.log({ channels })
-        console.log({ projectsResponse })
         const channel = channels.find(
           (channel) => channel.id === projectsResponse.discord_webhook_id,
         )
-        console.log({ channel })
         if (!channel) throw new Error('Canal de notificação não encontrado')
         setValue('notificationChannel', channel?.name)
 
@@ -138,7 +142,6 @@ export default function ProjectDetails() {
   }, [cameras, id, setSelectedCameras, setValue])
 
   async function onSubmit(data: ProjectForm) {
-    console.log({ data })
     const channel = notificationChannels?.find(
       (channel) => channel.name === data.notificationChannel,
     )
@@ -161,9 +164,6 @@ export default function ProjectDetails() {
       },
     })
   }
-
-  console.log({ errors })
-  console.log({ model: watch('model') })
 
   return loading ? (
     <Spinner className="mx-auto mt-10 size-6" />
@@ -323,6 +323,42 @@ export default function ProjectDetails() {
               )}
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="startTime">Data de início</Label>
+              <Controller
+                control={control}
+                name="startTime"
+                render={({ field }) => (
+                  <DatePicker
+                    className="w-full"
+                    value={field.value}
+                    onChange={field.onChange}
+                    type="datetime-local"
+                    clearButton
+                  />
+                )}
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="startTime">Data de fim</Label>
+              <Controller
+                control={control}
+                name="endTime"
+                render={({ field }) => (
+                  <DatePicker
+                    className="w-full"
+                    value={field.value}
+                    onChange={field.onChange}
+                    type="datetime-local"
+                    clearButton
+                  />
+                )}
+              />
+            </div>
+          </div>
+
           <div className="flex mt-4 flex-col gap-1 h-full">
             <Label>Câmeras Selecionadas:</Label>
             <div className="h-full relative overflow-y-auto">

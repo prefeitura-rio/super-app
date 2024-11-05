@@ -1,4 +1,6 @@
-import { Clock } from 'lucide-react'
+import { Clock, X } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
 
 import {
   Select,
@@ -18,9 +20,11 @@ const minutes = Array.from({ length: 60 }, (_, i) =>
 interface TimePickerProps {
   value: Date | null | undefined
   defaultValue?: Date | null
-  onChange: (date: Date) => void
+  onChange: (date: Date | undefined | null) => void
   disableFuture?: boolean
   disabled?: boolean
+  clearButton?: boolean
+  showIcon?: boolean
 }
 
 export function TimePicker({
@@ -29,6 +33,8 @@ export function TimePicker({
   onChange,
   disabled = false,
   disableFuture = false,
+  clearButton = false,
+  showIcon = true,
 }: TimePickerProps) {
   const today = new Date()
   const todayAtMidnight = new Date()
@@ -64,6 +70,12 @@ export function TimePicker({
             if (value) {
               const newDate = new Date(value)
               newDate.setHours(Number(val))
+              onChange(newDate)
+            } else {
+              const newDate = new Date()
+              newDate.setHours(Number(val))
+              newDate.setMinutes(0)
+              newDate.setMilliseconds(0)
               onChange(newDate)
             }
           }}
@@ -119,7 +131,20 @@ export function TimePicker({
       </div>
 
       <div className="pl-1 pt-5">
-        <Clock className="h-4 w-4 text-muted-foreground" />
+        {showIcon && <Clock className="h-4 w-4 text-muted-foreground" />}
+        {clearButton && !!value && (
+          <Button
+            type="button"
+            onClick={() => {
+              onChange(undefined)
+            }}
+            className="size-6"
+            size="icon"
+            variant="ghost"
+          >
+            <X className="shrink-0 size-3.5" />
+          </Button>
+        )}
       </div>
     </div>
   )

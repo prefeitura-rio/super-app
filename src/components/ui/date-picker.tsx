@@ -62,7 +62,6 @@ export function DatePicker({
           <Button
             type="button"
             onClick={() => {
-              console.log('clear')
               onChange(undefined)
             }}
             className="absolute right-0 p-0"
@@ -100,7 +99,11 @@ export function DatePicker({
                 disableFuture
                 value={value}
                 defaultValue={value}
-                onChange={onChange}
+                onChange={(e) => {
+                  if (e) {
+                    onChange(e)
+                  }
+                }}
                 disabled={!value}
               />
             </div>

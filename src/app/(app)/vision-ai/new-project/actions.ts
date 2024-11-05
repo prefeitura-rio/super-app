@@ -6,7 +6,13 @@ import type { Project } from '@/models/entities'
 interface CreateProject {
   name: string
   model: string
-  model_config?: Record<string, string> | null
+  model_config: {
+    yolo_crowd_count?: number // CROWD
+    yolo_default_precision: number
+    yolo_discord_webhook_id?: string
+    yolo_discord_webhook_token?: string
+    yolo_send_message?: boolean
+  }
   cameras_id: string[]
   time_start?: string
   time_end?: string
@@ -31,7 +37,13 @@ export async function createProjectAction(props: CreateProject) {
       discord_webhook_token: props.discord_webhook_token,
     }),
   })
-  const project: Project = await response.json()
 
-  return project
+  if (response.ok) {
+    const project: Project = await response.json()
+
+    return project
+  } else {
+    const error = await response.json()
+    throw error
+  }
 }

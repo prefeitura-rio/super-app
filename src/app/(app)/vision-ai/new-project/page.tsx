@@ -16,7 +16,6 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -35,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { TimePicker } from '@/components/ui/time-picker'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 import { type Model, type NotificationChannel } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
@@ -62,6 +62,7 @@ export default function Page() {
     register,
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ProjectForm>({
     resolver: zodResolver(projectFormSchema),
@@ -82,9 +83,15 @@ export default function Page() {
       cameras_id: selectedCameras.map((camera) => camera.id),
       discord_webhook_id: channel.id,
       discord_webhook_token: channel.token,
-      time_start: data.startTime?.toISOString(),
-      time_end: data.endTime?.toISOString(),
+      time_start: data.startTime?.toISOString().split('T')[1],
+      time_end: data.endTime?.toISOString().split('T')[1],
+      model_config: {
+        yolo_default_precision: data.yolo_default_precision,
+        yolo_send_message: data.yolo_send_message,
+        yolo_crowd_count: data.yolo_crowd_count,
+      },
     })
+
     await redirect(`/vision-ai/project/${project.id}`)
   }
 
@@ -196,40 +203,89 @@ export default function Page() {
               )}
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+            <div className={'flex flex-col gap-1'}>
+              <div className="flex items-center gap-2 h-3.5">
+                <Label htmlFor="name">Precisão</Label>
+                {errors.yolo_default_precision && (
+                  <span className="text-xs text-destructive text-nowrap">
+                    {errors.yolo_default_precision.message}
+                  </span>
+                )}
+              </div>
+              <Input
+                type="number"
+                id="name"
+                placeholder="0.7"
+                step={0.001}
+                {...register('yolo_default_precision', { valueAsNumber: true })}
+              />
+            </div>
+            {watch('model') === 'CROWD' && (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 h-3.5">
+                  <Label htmlFor="name" className="text-nowrap">
+                    Tolerância de Pessoas
+                  </Label>
+                  {errors.yolo_crowd_count && (
+                    <span className="text-xs text-destructive text-nowrap">
+                      Obrigatório
+                    </span>
+                  )}
+                </div>
+                <Input
+                  type="number"
+                  id="name"
+                  placeholder="10"
+                  {...register('yolo_crowd_count', { valueAsNumber: true })}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="startTime">Data de início</Label>
+              <Label htmlFor="startTime">Horário de início</Label>
               <Controller
                 control={control}
                 name="startTime"
                 render={({ field }) => (
-                  <DatePicker
-                    className="w-full"
-                    value={field.value}
-                    onChange={field.onChange}
-                    type="datetime-local"
-                    clearButton
-                  />
+                  <div className="w-32 flex justify-start">
+                    <TimePicker
+                      value={field.value}
+                      defaultValue={field.value}
+                      onChange={(e) => {
+                        console.log({ e })
+                        field.onChange(e)
+                      }}
+                      clearButton
+                      showIcon={false}
+                    />
+                  </div>
                 )}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="startTime">Data de fim</Label>
+              <Label htmlFor="startTime">Horário de término</Label>
               <Controller
                 control={control}
                 name="endTime"
                 render={({ field }) => (
-                  <DatePicker
-                    className="w-full"
-                    value={field.value}
-                    onChange={field.onChange}
-                    type="datetime-local"
-                    clearButton
-                  />
+                  <div className="w-32 flex justify-start">
+                    <TimePicker
+                      value={field.value}
+                      defaultValue={field.value}
+                      onChange={field.onChange}
+                      clearButton
+                      showIcon={false}
+                    />
+                  </div>
                 )}
               />
             </div>
           </div>
+
           <div className="flex flex-col gap-1 h-full">
             <Label>Câmeras Selecionadas</Label>
             <div className="h-full relative overflow-y-auto">
