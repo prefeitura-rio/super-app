@@ -12,7 +12,7 @@ export default async function SidePanel() {
   const projects = await getProjectsAction()
 
   return (
-    <div className="relative w-full h-full px-1 py-2 space-y-4">
+    <div className="relative w-full h-screen max-h-screen px-4 py-2 flex flex-col gap-4">
       <ToastHandler />
       <h3 className="text-2xl font-bold">Projetos</h3>
       <ScrollArea className="h-[calc(100%-3rem)]" type="hover">

@@ -6,15 +6,19 @@ import { env } from '@/env'
 
 interface UpdateProject {
   id: string
-  name?: string
-  model?: string
-  model_config?: Record<string, string> | null
-  cameras_id?: string[]
+  name: string
+  model: string
+  model_config: {
+    yolo_default_precision: number
+    yolo_send_message?: boolean
+    yolo_crowd_count?: number
+  }
+  cameras_id: string[]
   time_start?: string
   time_end?: string
-  discord_webhook_id?: string
-  discord_webhook_token?: string
-  enable?: boolean
+  discord_webhook_id: string
+  discord_webhook_token: string
+  enable: boolean
 }
 
 export async function updateProjectAction(props: UpdateProject) {

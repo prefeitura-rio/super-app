@@ -71,6 +71,7 @@ export default function ProjectDetails() {
     register,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<ProjectForm>({
     resolver: zodResolver(projectFormSchema),
@@ -103,6 +104,14 @@ export default function ProjectDetails() {
         setValue('name', projectsResponse.name)
         setValue('model', projectsResponse.model)
         setValue('enabled', projectsResponse.enabled)
+        setValue(
+          'yolo_crowd_count',
+          projectsResponse.model_config.yolo_crowd_count,
+        )
+        setValue(
+          'yolo_default_precision',
+          projectsResponse.model_config.yolo_default_precision,
+        )
 
         console.log({ channels })
         console.log({ projectsResponse })
@@ -129,6 +138,7 @@ export default function ProjectDetails() {
   }, [cameras, id, setSelectedCameras, setValue])
 
   async function onSubmit(data: ProjectForm) {
+    console.log({ data })
     const channel = notificationChannels?.find(
       (channel) => channel.name === data.notificationChannel,
     )
@@ -144,8 +154,16 @@ export default function ProjectDetails() {
       discord_webhook_token: channel.token,
       time_start: data.startTime?.toISOString(),
       time_end: data.endTime?.toISOString(),
+      model_config: {
+        yolo_default_precision: data.yolo_default_precision,
+        yolo_send_message: data.yolo_send_message,
+        yolo_crowd_count: data.yolo_crowd_count,
+      },
     })
   }
+
+  console.log({ errors })
+  console.log({ model: watch('model') })
 
   return loading ? (
     <Spinner className="mx-auto mt-10 size-6" />
@@ -218,6 +236,7 @@ export default function ProjectDetails() {
               )}
             />
           </div>
+
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="notificationChannel">Canal de Notificação</Label>
@@ -251,6 +270,45 @@ export default function ProjectDetails() {
               )}
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-x-2 gap-y-4">
+            <div className={'flex flex-col gap-1'}>
+              <div className="flex items-center gap-2 h-3.5">
+                <Label htmlFor="name">Precisão</Label>
+                {errors.yolo_default_precision && (
+                  <span className="text-xs text-destructive text-nowrap">
+                    {errors.yolo_default_precision.message}
+                  </span>
+                )}
+              </div>
+              <Input
+                type="number"
+                id="name"
+                step={0.001}
+                {...register('yolo_default_precision', { valueAsNumber: true })}
+              />
+            </div>
+            {watch('model') === 'CROWD' && (
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2 h-3.5">
+                  <Label htmlFor="name" className="text-nowrap">
+                    Tolerância de Pessoas
+                  </Label>
+                  {errors.yolo_crowd_count && (
+                    <span className="text-xs text-destructive text-nowrap">
+                      Obrigatório
+                    </span>
+                  )}
+                </div>
+                <Input
+                  type="number"
+                  id="name"
+                  {...register('yolo_crowd_count', { valueAsNumber: true })}
+                />
+              </div>
+            )}
+          </div>
+
           <div className="space-y-0.5 flex items-center gap-2">
             <Label htmlFor="active">Ativo</Label>
             <Controller
