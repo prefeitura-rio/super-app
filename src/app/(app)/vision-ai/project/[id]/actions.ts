@@ -42,3 +42,18 @@ export async function updateProjectAction(props: UpdateProject) {
 
   redirect('/vision-ai')
 }
+
+export async function formatCurrentDateTime(time: string) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const splited = time.split(':')
+
+  console.log({ time })
+
+  const hour = parseInt(splited[0]) - 3 // Converte para o horário de Brasília
+  const minute = parseInt(splited[1])
+
+  today.setHours(hour, minute)
+  return today
+}

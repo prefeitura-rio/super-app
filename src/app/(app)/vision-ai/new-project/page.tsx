@@ -207,7 +207,7 @@ export default function Page() {
           <div className="grid grid-cols-2 gap-x-2 gap-y-4">
             <div className={'flex flex-col gap-1'}>
               <div className="flex items-center gap-2 h-3.5">
-                <Label htmlFor="name">Precisão</Label>
+                <Label htmlFor="precision">Precisão</Label>
                 {errors.yolo_default_precision && (
                   <span className="text-xs text-destructive text-nowrap">
                     {errors.yolo_default_precision.message}
@@ -216,7 +216,7 @@ export default function Page() {
               </div>
               <Input
                 type="number"
-                id="name"
+                id="precision"
                 placeholder="0.7"
                 step={0.001}
                 {...register('yolo_default_precision', { valueAsNumber: true })}
@@ -225,7 +225,7 @@ export default function Page() {
             {watch('model') === 'CROWD' && (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 h-3.5">
-                  <Label htmlFor="name" className="text-nowrap">
+                  <Label htmlFor="yolo_crowd_count" className="text-nowrap">
                     Tolerância de Pessoas
                   </Label>
                   {errors.yolo_crowd_count && (
@@ -236,9 +236,9 @@ export default function Page() {
                 </div>
                 <Input
                   type="number"
-                  id="name"
+                  id="yolo_crowd_count"
                   placeholder="10"
-                  {...register('yolo_crowd_count', { valueAsNumber: true })}
+                  {...register('yolo_crowd_count')}
                 />
               </div>
             )}
@@ -255,10 +255,7 @@ export default function Page() {
                     <TimePicker
                       value={field.value}
                       defaultValue={field.value}
-                      onChange={(e) => {
-                        console.log({ e })
-                        field.onChange(e)
-                      }}
+                      onChange={field.onChange}
                       clearButton
                       showIcon={false}
                     />

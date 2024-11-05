@@ -18,7 +18,6 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { DatePicker } from '@/components/ui/date-picker'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -38,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { TimePicker } from '@/components/ui/time-picker'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 import type { Model, NotificationChannel, Project } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
@@ -49,7 +49,7 @@ import {
   type ProjectForm,
   projectFormSchema,
 } from '../../components/schemas/project-schema'
-import { updateProjectAction } from './actions'
+import { formatCurrentDateTime, updateProjectAction } from './actions'
 
 export default function ProjectDetails() {
   const {
@@ -113,11 +113,18 @@ export default function ProjectDetails() {
           'yolo_default_precision',
           projectsResponse.model_config.yolo_default_precision,
         )
+
         if (projectsResponse.start_time) {
-          setValue('startTime', new Date(projectsResponse.start_time))
+          setValue(
+            'startTime',
+            await formatCurrentDateTime(projectsResponse.start_time),
+          )
         }
         if (projectsResponse.end_time) {
-          setValue('endTime', new Date(projectsResponse.end_time))
+          setValue(
+            'endTime',
+            await formatCurrentDateTime(projectsResponse.end_time),
+          )
         }
 
         const channel = channels.find(
@@ -155,8 +162,8 @@ export default function ProjectDetails() {
       enable: data.enabled,
       discord_webhook_id: channel.id,
       discord_webhook_token: channel.token,
-      time_start: data.startTime?.toISOString(),
-      time_end: data.endTime?.toISOString(),
+      time_start: data.startTime?.toISOString().split('T')[1],
+      time_end: data.endTime?.toISOString().split('T')[1],
       model_config: {
         yolo_default_precision: data.yolo_default_precision,
         yolo_send_message: data.yolo_send_message,
@@ -274,7 +281,7 @@ export default function ProjectDetails() {
           <div className="grid grid-cols-2 gap-x-2 gap-y-4">
             <div className={'flex flex-col gap-1'}>
               <div className="flex items-center gap-2 h-3.5">
-                <Label htmlFor="name">Precisão</Label>
+                <Label htmlFor="precision">Precisão</Label>
                 {errors.yolo_default_precision && (
                   <span className="text-xs text-destructive text-nowrap">
                     {errors.yolo_default_precision.message}
@@ -283,7 +290,7 @@ export default function ProjectDetails() {
               </div>
               <Input
                 type="number"
-                id="name"
+                id="precision"
                 step={0.001}
                 {...register('yolo_default_precision', { valueAsNumber: true })}
               />
@@ -291,7 +298,7 @@ export default function ProjectDetails() {
             {watch('model') === 'CROWD' && (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 h-3.5">
-                  <Label htmlFor="name" className="text-nowrap">
+                  <Label htmlFor="yolo_crowd_count" className="text-nowrap">
                     Tolerância de Pessoas
                   </Label>
                   {errors.yolo_crowd_count && (
@@ -302,8 +309,8 @@ export default function ProjectDetails() {
                 </div>
                 <Input
                   type="number"
-                  id="name"
-                  {...register('yolo_crowd_count', { valueAsNumber: true })}
+                  id="yolo_crowd_count"
+                  {...register('yolo_crowd_count')}
                 />
               </div>
             )}
@@ -331,12 +338,12 @@ export default function ProjectDetails() {
                 control={control}
                 name="startTime"
                 render={({ field }) => (
-                  <DatePicker
-                    className="w-full"
+                  <TimePicker
                     value={field.value}
+                    defaultValue={field.value}
                     onChange={field.onChange}
-                    type="datetime-local"
                     clearButton
+                    showIcon={false}
                   />
                 )}
               />
@@ -347,12 +354,12 @@ export default function ProjectDetails() {
                 control={control}
                 name="endTime"
                 render={({ field }) => (
-                  <DatePicker
-                    className="w-full"
+                  <TimePicker
                     value={field.value}
+                    defaultValue={field.value}
                     onChange={field.onChange}
-                    type="datetime-local"
                     clearButton
+                    showIcon={false}
                   />
                 )}
               />
