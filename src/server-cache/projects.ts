@@ -1,10 +1,20 @@
 'use server'
 
+import { cookies } from 'next/headers'
+
 import { env } from '@/env'
 import type { Project, RawProject } from '@/models/entities'
 
 export async function getProjectsAction() {
-  const data = await fetch(`${env.VISION_AI_API_URL}/project`)
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')?.value
+
+  const data = await fetch(`${env.VISION_AI_API_URL}/project`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
   const rawProjects: RawProject[] = await data.json()
 
   // Improve attribute names and structure

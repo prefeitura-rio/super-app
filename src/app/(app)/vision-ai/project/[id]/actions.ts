@@ -1,5 +1,6 @@
 'use server'
 
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { env } from '@/env'
@@ -22,10 +23,13 @@ interface UpdateProject {
 }
 
 export async function updateProjectAction(props: UpdateProject) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')?.value
   await fetch(`${env.VISION_AI_API_URL}/project/${props.id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       name: props.name,
@@ -48,8 +52,6 @@ export async function formatCurrentDateTime(time: string) {
   today.setHours(0, 0, 0, 0)
 
   const splited = time.split(':')
-
-  console.log({ time })
 
   const hour = parseInt(splited[0]) - 3 // Converte para o horário de Brasília
   const minute = parseInt(splited[1])

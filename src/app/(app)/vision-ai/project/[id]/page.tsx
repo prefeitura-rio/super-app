@@ -107,7 +107,7 @@ export default function ProjectDetails() {
         setValue('enabled', projectsResponse.enabled)
         setValue(
           'yolo_crowd_count',
-          projectsResponse.model_config.yolo_crowd_count,
+          projectsResponse.model_config?.yolo_crowd_count,
         )
         setValue(
           'yolo_default_precision',

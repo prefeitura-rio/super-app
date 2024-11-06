@@ -7,3 +7,7 @@ interface Date {
   addHours(hours: number): Date
   addMinutes(minutes: number): Date
 }
+
+interface String {
+  capitalizeFirstLetter(): string
+}

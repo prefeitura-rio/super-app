@@ -97,3 +97,27 @@ export type NotificationChannel = {
   name: string
   token: string
 }
+
+export type School = {
+  objectid: number
+  cre: number
+  designacao: number
+  denominacao: string
+  latitude: number
+  longitude: number
+  tipo: string
+}
+
+export type RawBusStop = {
+  data_versao: string
+  id_parada: string
+  nome_parada: string
+}
+
+export type BusStop = {
+  data_versao: string
+  id_parada: string
+  nome_parada: string
+  longitude: number
+  latitude: number
+}

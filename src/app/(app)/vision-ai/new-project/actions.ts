@@ -1,5 +1,7 @@
 'use server'
 
+import { cookies } from 'next/headers'
+
 import { env } from '@/env'
 import type { Project } from '@/models/entities'
 
@@ -21,10 +23,14 @@ interface CreateProject {
 }
 
 export async function createProjectAction(props: CreateProject) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')?.value
+
   const response = await fetch(`${env.VISION_AI_API_URL}/project`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       name: props.name,

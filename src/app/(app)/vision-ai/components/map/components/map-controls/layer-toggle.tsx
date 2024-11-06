@@ -1,7 +1,14 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronUp, Layers, Shield, Video } from 'lucide-react'
+import {
+  BusFront,
+  ChevronUp,
+  Layers,
+  School,
+  Shield,
+  Video,
+} from 'lucide-react'
 import { useContext, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -32,6 +39,14 @@ export function LayerToggle() {
       },
       AISP: { isVisible: isAISPVisible, setIsVisible: setIsAISPVisible },
       CISP: { isVisible: isCISPVisible, setIsVisible: setIsCISPVisible },
+      schools: {
+        isVisible: isSchoolsVisible,
+        setIsVisible: setIsSchoolsVisible,
+      },
+      busStops: {
+        isVisible: isBusStopsVisible,
+        setIsVisible: setIsBusStopsVisible,
+      },
     },
   } = useContext(VisionAIMapContext)
 
@@ -46,13 +61,31 @@ export function LayerToggle() {
       name: 'AISP',
       icon: <Shield />,
       isVisible: isAISPVisible,
-      setIsVisible: setIsAISPVisible,
+      setIsVisible: (isVisible) => {
+        setIsAISPVisible(isVisible)
+        if (isVisible) setIsCISPVisible(false)
+      },
     },
     {
       name: 'CISP',
       icon: <Shield />,
       isVisible: isCISPVisible,
-      setIsVisible: setIsCISPVisible,
+      setIsVisible: (isVisible) => {
+        setIsCISPVisible(isVisible)
+        if (isVisible) setIsAISPVisible(false)
+      },
+    },
+    {
+      name: 'Escolas Municipais',
+      icon: <School />,
+      isVisible: isSchoolsVisible,
+      setIsVisible: setIsSchoolsVisible,
+    },
+    {
+      name: 'Paradas de Ônibus',
+      icon: <BusFront />,
+      isVisible: isBusStopsVisible,
+      setIsVisible: setIsBusStopsVisible,
     },
   ]
 

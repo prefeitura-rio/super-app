@@ -1,14 +1,8 @@
 'use client'
 
-import type { LayersList, PickingInfo } from '@deck.gl/core'
+import type { LayersList } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
-import {
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import type { Camera } from '@/models/entities'
@@ -16,21 +10,19 @@ import { getCamerasAction } from '@/server-cache/cameras'
 
 export interface UseCameraLayer {
   cameras: Camera[]
-  hoverInfo: PickingInfo<Camera> | null
-  setHoverInfo: (info: PickingInfo<Camera> | null) => void
   selectedCameras: Camera[]
   setSelectedCameras: (cameras: Camera[]) => void
-  setIsHoveringInfoCard: Dispatch<SetStateAction<boolean>>
   layers: LayersList
   isVisible: boolean
   setIsVisible: (isVisible: boolean) => void
+  selectedObject: Camera | null
+  handleSelectObject: (camera: Camera | null) => void
 }
 export function useCameraLayer(): UseCameraLayer {
-  const [hoverInfo, setHoverInfo] = useState<PickingInfo<Camera> | null>(null)
   const [selectedCameras, setSelectedCameras] = useState<Camera[]>([])
   const [cameras, setCameras] = useState<Camera[]>([])
-  const [isHoveringInfoCard, setIsHoveringInfoCard] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
+  const [selectedObject, setSelectedObject] = useState<Camera | null>(null)
 
   useEffect(() => {
     const fetchCameras = async () => {
@@ -39,6 +31,14 @@ export function useCameraLayer(): UseCameraLayer {
     }
     fetchCameras()
   }, [])
+
+  function handleSelectObject(camera: Camera | null) {
+    if (camera === null || selectedObject?.name === camera.name) {
+      setSelectedObject(null)
+    } else {
+      setSelectedObject(camera)
+    }
+  }
 
   const baseLayer = useMemo(
     () =>
@@ -75,33 +75,19 @@ export function useCameraLayer(): UseCameraLayer {
           return 'default'
         },
         getPosition: (d) => [d.longitude, d.latitude],
-        onHover: (d) => {
-          if (!isHoveringInfoCard) {
-            setHoverInfo(d.object ? d : null)
-          }
-        },
-        onClick: (d) => {
-          setSelectedCameras((prev) => {
-            if (prev.find((c) => c.id === d.object.id)) {
-              return prev.filter((c) => c.id !== d.object.id)
-            }
-            return [...prev, d.object]
-          })
-        },
       }),
 
-    [cameras, isVisible, selectedCameras, isHoveringInfoCard],
+    [cameras, isVisible, selectedCameras],
   )
 
   return {
     cameras,
-    hoverInfo,
-    setHoverInfo,
     selectedCameras,
     setSelectedCameras,
-    setIsHoveringInfoCard,
     layers: [baseLayer],
     isVisible,
     setIsVisible,
+    selectedObject,
+    handleSelectObject,
   }
 }

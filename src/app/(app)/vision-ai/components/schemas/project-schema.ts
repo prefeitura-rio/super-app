@@ -25,8 +25,6 @@ export const projectFormSchema = z
   })
   .superRefine((val, ctx) => {
     // Access the entire parsed object to get `model`
-    console.log({ val })
-    console.log({ ctx })
     if (val.model === 'CROWD' && val.yolo_crowd_count === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
