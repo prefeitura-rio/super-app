@@ -2,7 +2,13 @@
 
 import type { LayersList } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
-import { useEffect, useMemo, useState } from 'react'
+import {
+  type Dispatch,
+  type SetStateAction,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import type { Camera } from '@/models/entities'
@@ -11,7 +17,7 @@ import { getCamerasAction } from '@/server-cache/cameras'
 export interface UseCameraLayer {
   cameras: Camera[]
   selectedCameras: Camera[]
-  setSelectedCameras: (cameras: Camera[]) => void
+  setSelectedCameras: Dispatch<SetStateAction<Camera[]>>
   layers: LayersList
   isVisible: boolean
   setIsVisible: (isVisible: boolean) => void

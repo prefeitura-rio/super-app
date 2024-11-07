@@ -8,6 +8,7 @@ import { Popover, PopoverContent } from '@/components/ui/popover'
 
 import { AISPInfo } from './components/aisp-info'
 import { calculateTooltipAbsolutePosition } from './components/calculate-tooltip-absolute-position'
+import { CameraInfo } from './components/camera-info'
 import { CISPInfo } from './components/cisp-info'
 import { SchoolInfo } from './components/school-info'
 
@@ -32,6 +33,10 @@ export function ContextMenu({
   )
 
   const Content = ({ pickingInfo }: { pickingInfo: PickingInfo }) => {
+    if (pickingInfo?.layer?.id === 'cameras') {
+      return <CameraInfo pickingInfo={pickingInfo} />
+    }
+
     if (pickingInfo?.layer?.id === 'AISP') {
       return <AISPInfo pickingInfo={pickingInfo} />
     }
@@ -48,7 +53,9 @@ export function ContextMenu({
   return (
     <Popover open={open} onOpenChange={onOpenChange} modal={false}>
       {pickingInfo.layer?.id &&
-        ['AISP', 'CISP', 'schools'].includes(pickingInfo.layer.id) && (
+        ['cameras', 'AISP', 'CISP', 'schools'].includes(
+          pickingInfo.layer.id,
+        ) && (
           <PopoverContent
             ref={(ref) => setCardRef(ref)}
             style={{

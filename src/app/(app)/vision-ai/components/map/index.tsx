@@ -13,7 +13,6 @@ import { getMapStyle } from '@/utils/map/get-map-style'
 
 import { ContextMenu } from './components/context-menu'
 import { LayerToggle } from './components/map-controls/layer-toggle'
-import { SelectionCards } from './components/select-cards'
 
 interface MapProps {
   mapboxAccessToken: string
@@ -25,7 +24,7 @@ export default function Map({ mapboxAccessToken }: MapProps) {
 
   const {
     layers: {
-      cameras: { layers: cameraLayer, handleSelectObject: selectCamera },
+      cameras: { layers: cameraLayer, setSelectedCameras: selectCamera },
       AISP: { layers: AISPLayer },
       CISP: { layers: CISPLayer },
       schools: { layers: schoolsLayer },
@@ -64,7 +63,7 @@ export default function Map({ mapboxAccessToken }: MapProps) {
     const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
     if (info?.layer?.id === 'cameras' && info.object) {
-      selectCamera(info.object as Camera)
+      selectCamera((prev) => [...prev, info.object as Camera])
     }
   }
 
@@ -99,7 +98,6 @@ export default function Map({ mapboxAccessToken }: MapProps) {
           mapStyle={getMapStyle(mapStyle)}
           mapboxAccessToken={mapboxAccessToken}
         />
-        <SelectionCards />
         <LayerToggle />
         <ContextMenu
           open={openContextMenu}
