@@ -8,8 +8,8 @@ steps:
         echo "VISION_AI_API_URL=${_VISION_AI_API_URL}" > .env.production && \
         echo "GATEWAY_API_URL=${_GATEWAY_API_URL}" >> .env.production && \
         echo "MAPBOX_ACCESS_TOKEN=${_MAPBOX_ACCESS_TOKEN}" >> .env.production  && \
-        echo "DISCORD_WEBHOOK_ID" >> .env.production && \
-        echo "DISCORD_WEBHOOK_TOKEN" >> .env.production
+        echo "DISCORD_WEBHOOK_ID=${_DISCORD_WEBHOOK_ID}" >> .env.production && \
+        echo "DISCORD_WEBHOOK_TOKEN=${_DISCORD_WEBHOOK_TOKEN}" >> .env.production
   # Build the container image
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/$PROJECT_ID/super-app:$COMMIT_SHA", "."]
