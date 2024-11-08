@@ -16,25 +16,6 @@ export type Camera = {
   streamingUrl: string
 }
 
-export type RawProject = {
-  id: string
-  name: string
-  model: string
-  model_config: {
-    yolo_crowd_count?: number // CROWD
-    yolo_default_precision: number
-    yolo_discord_webhook_id?: string
-    yolo_discord_webhook_token?: string
-    yolo_send_message: boolean
-  }
-  cameras_id: string[]
-  time_start: string | null
-  time_end: string | null
-  discord_webhook_id: string
-  discord_webhook_token: string
-  enable: true
-}
-
 export type Project = {
   id: string
   name: string
@@ -44,19 +25,13 @@ export type Project = {
     yolo_default_precision: number
     yolo_discord_webhook_id?: string
     yolo_discord_webhook_token?: string
-    yolo_send_message: boolean
+    yolo_send_message?: boolean
   }
-  camera_ids: string[]
-  start_time: string | null
-  end_time: string | null
-  discord_webhook_id: string
-  discord_webhook_token: string
-  enabled: true
-}
-
-export type RawModel = {
-  model: string
-  description: string
+  cameras_id: string[]
+  time_start: string | null
+  time_end: string | null
+  discord_id: string
+  enable: true
 }
 
 export type Model = {
@@ -95,7 +70,8 @@ export type CISP = {
 export type NotificationChannel = {
   id: string
   name: string
-  token: string
+  channel_id: string
+  channel_token: string
 }
 
 export type School = {

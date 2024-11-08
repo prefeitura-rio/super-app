@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers'
 
 import { env } from '@/env'
-import type { Model, RawModel } from '@/models/entities'
+import type { Model } from '@/models/entities'
 
 export async function getModelsAction() {
   const cookieStore = await cookies()
@@ -19,12 +19,7 @@ export async function getModelsAction() {
     console.error({ response })
     return []
   }
-  const rawModels: RawModel[] = await response.json()
-
-  const models: Model[] = rawModels.map((rawModel) => ({
-    name: rawModel.model,
-    description: rawModel.description,
-  }))
+  const models: Model[] = await response.json()
 
   return models
 }

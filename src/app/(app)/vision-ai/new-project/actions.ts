@@ -18,11 +18,11 @@ interface CreateProject {
   cameras_id: string[]
   time_start?: string
   time_end?: string
-  discord_webhook_id: string
-  discord_webhook_token: string
+  discord_id: string
 }
 
 export async function createProjectAction(props: CreateProject) {
+  console.log('createProjectAction', props)
   const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
 
@@ -39,16 +39,17 @@ export async function createProjectAction(props: CreateProject) {
       cameras_id: props.cameras_id,
       time_start: props.time_start,
       time_end: props.time_end,
-      discord_webhook_id: props.discord_webhook_id,
-      discord_webhook_token: props.discord_webhook_token,
+      discord_id: props.discord_id,
     }),
   })
+  console.log({ response })
 
-  if (response.ok) {
+  if (response.ok === true) {
     const project: Project = await response.json()
 
     return project
   } else {
+    console.log({ response })
     const error = await response.json()
     throw error
   }

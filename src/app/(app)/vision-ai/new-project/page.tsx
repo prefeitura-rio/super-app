@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
-import { getNotificationChannels } from '@/assets/get-notification-channels'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -38,6 +37,7 @@ import { TimePicker } from '@/components/ui/time-picker'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 import { type Model, type NotificationChannel } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
+import { getNotificationChannels } from '@/server-cache/notification-channels'
 import { redirect } from '@/utils/others/redirect'
 
 import {
@@ -72,17 +72,18 @@ export default function Page() {
   })
 
   async function onSubmit(data: ProjectForm) {
+    console.log({ data })
     const channel = notificationChannels.find(
-      (c) => c.name === data.notificationChannel,
+      (c) => c.id === data.notificationChannelId,
     )
     if (!channel) throw new Error('Canal de notificação não encontrado.')
+    console.log('call createProjectAction', channel)
 
-    const project = await createProjectAction({
+    const payload = {
       name: data.name,
       model: data.model,
       cameras_id: selectedCameras.map((camera) => camera.id),
-      discord_webhook_id: channel.id,
-      discord_webhook_token: channel.token,
+      discord_id: channel.id,
       time_start: data.startTime?.toISOString().split('T')[1],
       time_end: data.endTime?.toISOString().split('T')[1],
       model_config: {
@@ -90,7 +91,13 @@ export default function Page() {
         yolo_send_message: data.yolo_send_message,
         yolo_crowd_count: data.yolo_crowd_count,
       },
-    })
+    }
+
+    console.log({ payload })
+
+    const project = await createProjectAction(payload)
+
+    console.log('redirect')
 
     await redirect(`/vision-ai/project/${project.id}`)
   }
@@ -173,15 +180,15 @@ export default function Page() {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="notificationChannel">Canal de Notificação</Label>
-              {errors.notificationChannel && (
+              {errors.notificationChannelId && (
                 <span className="text-xs text-destructive">
-                  {errors.notificationChannel.message}
+                  {errors.notificationChannelId.message}
                 </span>
               )}
             </div>
             <Controller
               control={control}
-              name="notificationChannel"
+              name="notificationChannelId"
               render={({ field }) => (
                 <Select
                   onValueChange={field.onChange}
@@ -193,7 +200,7 @@ export default function Page() {
                   <SelectContent>
                     <SelectGroup>
                       {notificationChannels.map((channel, index) => (
-                        <SelectItem key={index} value={channel.name}>
+                        <SelectItem key={index} value={channel.id}>
                           {channel.name}
                         </SelectItem>
                       ))}
