@@ -333,34 +333,38 @@ export default function ProjectDetails() {
 
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="startTime">Data de início</Label>
+              <Label htmlFor="startTime">Horário de início</Label>
               <Controller
                 control={control}
                 name="startTime"
                 render={({ field }) => (
-                  <TimePicker
-                    value={field.value}
-                    defaultValue={field.value}
-                    onChange={field.onChange}
-                    clearButton
-                    showIcon={false}
-                  />
+                  <div className="w-32 flex justify-start">
+                    <TimePicker
+                      value={field.value}
+                      defaultValue={field.value}
+                      onChange={field.onChange}
+                      clearButton
+                      showIcon={false}
+                    />
+                  </div>
                 )}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="startTime">Data de fim</Label>
+              <Label htmlFor="startTime">Horário de fim</Label>
               <Controller
                 control={control}
                 name="endTime"
                 render={({ field }) => (
-                  <TimePicker
-                    value={field.value}
-                    defaultValue={field.value}
-                    onChange={field.onChange}
-                    clearButton
-                    showIcon={false}
-                  />
+                  <div className="w-32 flex justify-start">
+                    <TimePicker
+                      value={field.value}
+                      defaultValue={field.value}
+                      onChange={field.onChange}
+                      clearButton
+                      showIcon={false}
+                    />
+                  </div>
                 )}
               />
             </div>
