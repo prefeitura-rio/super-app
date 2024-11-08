@@ -9,13 +9,18 @@ export async function getProjectsAction() {
   const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
 
-  const data = await fetch(`${env.VISION_AI_API_URL}/project`, {
+  const response = await fetch(`${env.VISION_AI_API_URL}/project`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
 
-  const rawProjects: RawProject[] = await data.json()
+  if (response.ok === false) {
+    console.error({ response })
+    return []
+  }
+
+  const rawProjects: RawProject[] = await response.json()
 
   // Improve attribute names and structure
   const projects: Project[] = rawProjects.map((rawProject) => ({

@@ -9,18 +9,18 @@ export async function getProjectAction(id: string) {
   const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
 
-  const data = await fetch(`${env.VISION_AI_API_URL}/project/${id}`, {
+  const response = await fetch(`${env.VISION_AI_API_URL}/project/${id}`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
 
-  if (data.ok === false) {
-    console.error({ data })
-    throw new Error('Failed to fetch projects')
+  if (response.ok === false) {
+    console.error({ response })
+    throw new Error('Failed to fetch project')
   }
 
-  const rawProject: RawProject = await data.json()
+  const rawProject: RawProject = await response.json()
 
   const project: Project = {
     id: rawProject.id,
