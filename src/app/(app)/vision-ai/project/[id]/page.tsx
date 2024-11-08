@@ -7,7 +7,6 @@ import { usePathname } from 'next/navigation'
 import { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
-import { getNotificationChannels } from '@/assets/get-notification-channels'
 import { Spinner } from '@/components/custom/spinner'
 import {
   Breadcrumb,
@@ -41,6 +40,7 @@ import { TimePicker } from '@/components/ui/time-picker'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
 import type { Model, NotificationChannel, Project } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
+import { getNotificationChannels } from '@/server-cache/notification-channels'
 import { getProjectAction } from '@/server-cache/project'
 import { setToastDataCookie } from '@/utils/others/cookie-handlers'
 import { redirect } from '@/utils/others/redirect'
@@ -104,7 +104,7 @@ export default function ProjectDetails() {
 
         setValue('name', projectsResponse.name)
         setValue('model', projectsResponse.model)
-        setValue('enabled', projectsResponse.enabled)
+        setValue('enabled', projectsResponse.enable)
         setValue(
           'yolo_crowd_count',
           projectsResponse.model_config?.yolo_crowd_count,
@@ -114,28 +114,30 @@ export default function ProjectDetails() {
           projectsResponse.model_config.yolo_default_precision,
         )
 
-        if (projectsResponse.start_time) {
+        if (projectsResponse.time_start) {
           setValue(
             'startTime',
-            await formatCurrentDateTime(projectsResponse.start_time),
+            await formatCurrentDateTime(projectsResponse.time_start),
           )
         }
-        if (projectsResponse.end_time) {
+        if (projectsResponse.time_end) {
           setValue(
             'endTime',
-            await formatCurrentDateTime(projectsResponse.end_time),
+            await formatCurrentDateTime(projectsResponse.time_end),
           )
         }
 
         const channel = channels.find(
-          (channel) => channel.id === projectsResponse.discord_webhook_id,
+          (channel) => channel.id === projectsResponse.discord_id,
         )
+
         if (!channel) throw new Error('Canal de notificação não encontrado')
-        setValue('notificationChannel', channel?.name)
+
+        setValue('notificationChannelId', channel.id)
 
         setSelectedCameras(
           cameras.filter((camera) =>
-            projectsResponse.camera_ids.includes(camera.id),
+            projectsResponse.cameras_id.includes(camera.id),
           ),
         )
 
@@ -150,18 +152,17 @@ export default function ProjectDetails() {
 
   async function onSubmit(data: ProjectForm) {
     const channel = notificationChannels?.find(
-      (channel) => channel.name === data.notificationChannel,
+      (channel) => channel.id === data.notificationChannelId,
     )
     if (!channel) throw new Error('Canal de notificação não encontrado')
 
-    await updateProjectAction({
+    const payload = {
       id,
       name: data.name,
       model: data.model,
       cameras_id: selectedCameras.map((camera) => camera.id),
       enable: data.enabled,
-      discord_webhook_id: channel.id,
-      discord_webhook_token: channel.token,
+      discord_id: channel.id,
       time_start: data.startTime?.toISOString().split('T')[1],
       time_end: data.endTime?.toISOString().split('T')[1],
       model_config: {
@@ -169,7 +170,9 @@ export default function ProjectDetails() {
         yolo_send_message: data.yolo_send_message,
         yolo_crowd_count: data.yolo_crowd_count,
       },
-    })
+    }
+
+    await updateProjectAction(payload)
   }
 
   return loading ? (
@@ -247,27 +250,27 @@ export default function ProjectDetails() {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
               <Label htmlFor="notificationChannel">Canal de Notificação</Label>
-              {errors.notificationChannel && (
+              {errors.notificationChannelId && (
                 <span className="text-xs text-destructive">
-                  {errors.notificationChannel.message}
+                  {errors.notificationChannelId.message}
                 </span>
               )}
             </div>
             <Controller
               control={control}
-              name="notificationChannel"
+              name="notificationChannelId"
               render={({ field }) => (
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
-                  <SelectTrigger id="notificationChannel" className="w-full">
+                  <SelectTrigger id="notificationChannelId" className="w-full">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {notificationChannels?.map((channel, index) => (
-                        <SelectItem key={index} value={channel.name}>
+                        <SelectItem key={index} value={channel.id}>
                           {channel.name}
                         </SelectItem>
                       ))}
@@ -333,34 +336,38 @@ export default function ProjectDetails() {
 
           <div className="grid grid-cols-2 gap-2">
             <div className="flex flex-col gap-1">
-              <Label htmlFor="startTime">Data de início</Label>
+              <Label htmlFor="startTime">Horário de início</Label>
               <Controller
                 control={control}
                 name="startTime"
                 render={({ field }) => (
-                  <TimePicker
-                    value={field.value}
-                    defaultValue={field.value}
-                    onChange={field.onChange}
-                    clearButton
-                    showIcon={false}
-                  />
+                  <div className="w-32 flex justify-start">
+                    <TimePicker
+                      value={field.value}
+                      defaultValue={field.value}
+                      onChange={field.onChange}
+                      clearButton
+                      showIcon={false}
+                    />
+                  </div>
                 )}
               />
             </div>
             <div className="flex flex-col gap-1">
-              <Label htmlFor="startTime">Data de fim</Label>
+              <Label htmlFor="startTime">Horário de fim</Label>
               <Controller
                 control={control}
                 name="endTime"
                 render={({ field }) => (
-                  <TimePicker
-                    value={field.value}
-                    defaultValue={field.value}
-                    onChange={field.onChange}
-                    clearButton
-                    showIcon={false}
-                  />
+                  <div className="w-32 flex justify-start">
+                    <TimePicker
+                      value={field.value}
+                      defaultValue={field.value}
+                      onChange={field.onChange}
+                      clearButton
+                      showIcon={false}
+                    />
+                  </div>
                 )}
               />
             </div>

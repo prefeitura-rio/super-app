@@ -23,7 +23,7 @@ export default async function SidePanel() {
                 <span className="block">{project.name}</span>
                 <span className="block">{project.model}</span>
                 <div>
-                  {project.enabled ? (
+                  {project.enable ? (
                     <span className="bg-emerald-600 px-2 py-1 rounded-full">
                       Ativo
                     </span>

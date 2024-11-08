@@ -9,13 +9,18 @@ export async function getCamerasAction() {
   const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
 
-  const data = await fetch(`${env.VISION_AI_API_URL}/camera`, {
+  const response = await fetch(`${env.VISION_AI_API_URL}/camera`, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   })
 
-  const rawCameras: RawCamera[] = await data.json()
+  if (response.ok === false) {
+    console.error({ response })
+    return []
+  }
+
+  const rawCameras: RawCamera[] = await response.json()
 
   const cameras: Camera[] = rawCameras.map((rawCamera) => ({
     id: rawCamera.CameraCode,

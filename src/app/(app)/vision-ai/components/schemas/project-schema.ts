@@ -5,7 +5,7 @@ export const projectFormSchema = z
     name: z.string().min(1, { message: 'O nome do projeto é obrigatório.' }),
     model: z.string().min(1),
     enabled: z.boolean(),
-    notificationChannel: z.string().min(1),
+    notificationChannelId: z.string().min(1),
     startTime: z.date().optional(),
     endTime: z.date().optional(),
     yolo_default_precision: z.coerce
