@@ -21,6 +21,7 @@ export async function getProjectAction(id: string) {
   }
 
   const project: Project = await response.json()
+  console.log({ project })
 
   return project
 }

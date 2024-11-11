@@ -72,12 +72,10 @@ export default function Page() {
   })
 
   async function onSubmit(data: ProjectForm) {
-    console.log({ data })
     const channel = notificationChannels.find(
       (c) => c.id === data.notificationChannelId,
     )
     if (!channel) throw new Error('Canal de notificação não encontrado.')
-    console.log('call createProjectAction', channel)
 
     const payload = {
       name: data.name,
@@ -93,24 +91,26 @@ export default function Page() {
       },
     }
 
-    console.log({ payload })
-
     const project = await createProjectAction(payload)
-
-    console.log('redirect')
 
     await redirect(`/vision-ai/project/${project.id}`)
   }
 
   useEffect(() => {
     async function initializeData() {
-      getModelsAction().then((data) => setModels(data))
+      getModelsAction().then((data) => {
+        console.log({ data })
+        setModels(data)
+        return data
+      })
       getNotificationChannels().then((data) => {
         setNotificationChannels(data)
       })
     }
     initializeData()
   }, [])
+
+  console.log({ models })
 
   return (
     <form
@@ -167,8 +167,8 @@ export default function Page() {
                   <SelectContent>
                     <SelectGroup>
                       {models.map((model, index) => (
-                        <SelectItem key={index} value={model.name}>
-                          {model.name}
+                        <SelectItem key={index} value={model.model}>
+                          {model.model}
                         </SelectItem>
                       ))}
                     </SelectGroup>

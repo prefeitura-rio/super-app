@@ -10,7 +10,7 @@ interface UpdateProject {
   name: string
   model: string
   model_config: {
-    yolo_default_precision: number
+    yolo_default_precision?: number
     yolo_send_message?: boolean
     yolo_crowd_count?: number
   }

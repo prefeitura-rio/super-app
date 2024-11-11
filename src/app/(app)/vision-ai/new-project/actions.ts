@@ -10,7 +10,7 @@ interface CreateProject {
   model: string
   model_config: {
     yolo_crowd_count?: number // CROWD
-    yolo_default_precision: number
+    yolo_default_precision?: number
     yolo_discord_webhook_id?: string
     yolo_discord_webhook_token?: string
     yolo_send_message?: boolean
@@ -22,7 +22,6 @@ interface CreateProject {
 }
 
 export async function createProjectAction(props: CreateProject) {
-  console.log('createProjectAction', props)
   const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
 
@@ -42,14 +41,12 @@ export async function createProjectAction(props: CreateProject) {
       discord_id: props.discord_id,
     }),
   })
-  console.log({ response })
 
   if (response.ok === true) {
     const project: Project = await response.json()
 
     return project
   } else {
-    console.log({ response })
     const error = await response.json()
     throw error
   }

@@ -11,7 +11,8 @@ export const projectFormSchema = z
     yolo_default_precision: z.coerce
       .number({ message: 'Obrigatório' })
       .min(0, { message: 'Deve ser entre 0 e 1' })
-      .max(1, { message: 'Deve ser entre 0 e 1' }),
+      .max(1, { message: 'Deve ser entre 0 e 1' })
+      .optional(),
     yolo_send_message: z.boolean().optional(),
     yolo_crowd_count: z
       .string()

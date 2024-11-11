@@ -42,8 +42,6 @@ export function CameraInfo({
     setIsLoading(true)
   }, [object])
 
-  console.log(object?.streamingUrl)
-
   return (
     <div className={cn('h-full w-full', object ? '' : 'hidden')}>
       <h4>Câmera COR</h4>
