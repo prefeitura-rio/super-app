@@ -21,7 +21,6 @@ export async function getProjectsAction() {
   }
 
   const projects: Project[] = await response.json()
-  console.log({ projects })
 
   return projects
 }
