@@ -99,7 +99,6 @@ export default function Page() {
   useEffect(() => {
     async function initializeData() {
       getModelsAction().then((data) => {
-        console.log({ data })
         setModels(data)
         return data
       })
@@ -109,8 +108,6 @@ export default function Page() {
     }
     initializeData()
   }, [])
-
-  console.log({ models })
 
   return (
     <form

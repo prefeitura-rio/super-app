@@ -102,6 +102,7 @@ export default function Map({ mapboxAccessToken }: MapProps) {
         <ContextMenu
           open={openContextMenu}
           onOpenChange={setOpenContextMenu}
+          setContextMenuPickingInfo={setContextMenuPickingInfo}
           pickingInfo={contextMenuPickingInfo}
         />
       </DeckGL>
