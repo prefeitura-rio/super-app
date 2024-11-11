@@ -8,7 +8,6 @@ import { type MouseEvent, useCallback, useContext, useRef } from 'react'
 import { Map as MapGL, type MapRef } from 'react-map-gl'
 
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
-import type { Camera } from '@/models/entities'
 import { getMapStyle } from '@/utils/map/get-map-style'
 
 import { ContextMenu } from './components/context-menu'
@@ -24,7 +23,7 @@ export default function Map({ mapboxAccessToken }: MapProps) {
 
   const {
     layers: {
-      cameras: { layers: cameraLayer, setSelectedCameras: selectCamera },
+      cameras: { layers: cameraLayer, onIconClick: selectCamera },
       AISP: { layers: AISPLayer },
       CISP: { layers: CISPLayer },
       schools: { layers: schoolsLayer },
@@ -63,7 +62,7 @@ export default function Map({ mapboxAccessToken }: MapProps) {
     const info = deckRef.current?.pickObject({ x, y, radius: 0 })
 
     if (info?.layer?.id === 'cameras' && info.object) {
-      selectCamera((prev) => [...prev, info.object as Camera])
+      selectCamera(info.object)
     }
   }
 
