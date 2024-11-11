@@ -33,33 +33,30 @@ const InfoItem = ({
 export function CameraInfo({
   pickingInfo,
 }: {
-  pickingInfo: PickingInfo<Camera>
+  pickingInfo: PickingInfo<Camera> | undefined | null
 }) {
   const [isLoading, setIsLoading] = useState(true)
-  const { object } = pickingInfo
 
   useEffect(() => {
     setIsLoading(true)
-  }, [object])
-
-  console.log(object?.streamingUrl)
+  }, [pickingInfo?.object])
 
   return (
-    <div className={cn('h-full w-full', object ? '' : 'hidden')}>
+    <div className={cn('h-full w-full', pickingInfo?.object ? '' : 'hidden')}>
       <h4>Câmera COR</h4>
       <Separator className="mb-4 mt-1 bg-secondary" />
       <div className="flex flex-col gap-4">
-        <InfoItem icon={Hash} label="ID" value={object?.id} />
+        <InfoItem icon={Hash} label="ID" value={pickingInfo?.object?.id} />
 
         <InfoItem
           icon={MapPin}
           label="Localidade"
-          value={`${object?.name} - ${object?.zone}`}
+          value={`${pickingInfo?.object?.name} - ${pickingInfo?.object?.zone}`}
         />
 
         <div className="relative flex aspect-video w-full items-center justify-center">
           <img
-            src={object?.streamingUrl}
+            src={pickingInfo?.object?.streamingUrl}
             alt="Streaming"
             className={cn(
               'aspect-video w-full rounded-lg bg-border',
@@ -74,7 +71,7 @@ export function CameraInfo({
               className="absolute bottom-1 right-1 h-6 p-1"
             >
               <Link
-                href={object?.streamingUrl || ''}
+                href={pickingInfo?.object?.streamingUrl || ''}
                 className="text-xs text-muted-foreground"
                 target="_blank"
               >

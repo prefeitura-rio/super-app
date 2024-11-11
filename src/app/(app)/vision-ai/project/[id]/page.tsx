@@ -111,7 +111,7 @@ export default function ProjectDetails() {
         )
         setValue(
           'yolo_default_precision',
-          projectsResponse.model_config.yolo_default_precision,
+          projectsResponse.model_config?.yolo_default_precision,
         )
 
         if (projectsResponse.time_start) {
@@ -233,8 +233,8 @@ export default function ProjectDetails() {
                     <SelectGroup>
                       {models ? (
                         models.map((model, index) => (
-                          <SelectItem key={index} value={model.name}>
-                            {model.name}
+                          <SelectItem key={index} value={model.model}>
+                            {model.model}
                           </SelectItem>
                         ))
                       ) : (

@@ -16,27 +16,26 @@ interface ContextMenuProps {
   pickingInfo: PickingInfo | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  setContextMenuPickingInfo: (pickingInfo: PickingInfo | null) => void
 }
 
 export function ContextMenu({
   pickingInfo,
   onOpenChange,
+  setContextMenuPickingInfo,
   open,
 }: ContextMenuProps) {
   const [cardRef, setCardRef] = useState<HTMLDivElement | null>(null)
-  if (!pickingInfo || !pickingInfo.object) return null
 
-  const { top, left } = calculateTooltipAbsolutePosition(
-    pickingInfo,
-    cardRef?.clientWidth,
-    cardRef?.clientHeight,
-  )
+  const { top, left } = pickingInfo
+    ? calculateTooltipAbsolutePosition(
+        pickingInfo,
+        cardRef?.clientWidth,
+        cardRef?.clientHeight,
+      )
+    : { top: 0, left: 0 }
 
   const Content = ({ pickingInfo }: { pickingInfo: PickingInfo }) => {
-    if (pickingInfo?.layer?.id === 'cameras') {
-      return <CameraInfo pickingInfo={pickingInfo} />
-    }
-
     if (pickingInfo?.layer?.id === 'AISP') {
       return <AISPInfo pickingInfo={pickingInfo} />
     }
@@ -50,12 +49,18 @@ export function ContextMenu({
     }
   }
 
+  function handleOnOpenChange(e: boolean) {
+    if (e === false) {
+      setContextMenuPickingInfo(null)
+      onOpenChange(false)
+    }
+    onOpenChange(true)
+  }
+
   return (
-    <Popover open={open} onOpenChange={onOpenChange} modal={false}>
-      {pickingInfo.layer?.id &&
-        ['cameras', 'AISP', 'CISP', 'schools'].includes(
-          pickingInfo.layer.id,
-        ) && (
+    <Popover open={open} onOpenChange={handleOnOpenChange} modal={false}>
+      {pickingInfo?.layer?.id &&
+        ['AISP', 'CISP', 'schools'].includes(pickingInfo.layer.id) && (
           <PopoverContent
             ref={(ref) => setCardRef(ref)}
             style={{
@@ -68,6 +73,18 @@ export function ContextMenu({
             <Content pickingInfo={pickingInfo} />
           </PopoverContent>
         )}
+      <PopoverContent
+        ref={(ref) => setCardRef(ref)}
+        style={{
+          position: 'absolute',
+          top,
+          left,
+          width: '400px',
+          display: pickingInfo ? 'block' : 'none',
+        }}
+      >
+        <CameraInfo pickingInfo={pickingInfo} />
+      </PopoverContent>
     </Popover>
   )
 }
