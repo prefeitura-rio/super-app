@@ -21,14 +21,12 @@ export interface UseCameraLayer {
   layers: LayersList
   isVisible: boolean
   setIsVisible: (isVisible: boolean) => void
-  selectedObject: Camera | null
-  handleSelectObject: (camera: Camera | null) => void
+  onIconClick: (camera: Camera) => void
 }
 export function useCameraLayer(): UseCameraLayer {
   const [selectedCameras, setSelectedCameras] = useState<Camera[]>([])
   const [cameras, setCameras] = useState<Camera[]>([])
   const [isVisible, setIsVisible] = useState(true)
-  const [selectedObject, setSelectedObject] = useState<Camera | null>(null)
 
   useEffect(() => {
     const fetchCameras = async () => {
@@ -38,11 +36,12 @@ export function useCameraLayer(): UseCameraLayer {
     fetchCameras()
   }, [])
 
-  function handleSelectObject(camera: Camera | null) {
-    if (camera === null || selectedObject?.name === camera.name) {
-      setSelectedObject(null)
+  function onIconClick(camera: Camera) {
+    const selectedObject = selectedCameras.find((c) => c.id === camera.id)
+    if (selectedObject) {
+      setSelectedCameras((prev) => prev.filter((c) => c.id !== camera.id))
     } else {
-      setSelectedObject(camera)
+      setSelectedCameras((prev) => [...prev, camera])
     }
   }
 
@@ -93,7 +92,6 @@ export function useCameraLayer(): UseCameraLayer {
     layers: [baseLayer],
     isVisible,
     setIsVisible,
-    selectedObject,
-    handleSelectObject,
+    onIconClick,
   }
 }
