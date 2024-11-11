@@ -109,10 +109,12 @@ export default function ProjectDetails() {
           'yolo_crowd_count',
           projectsResponse.model_config?.yolo_crowd_count,
         )
-        setValue(
-          'yolo_default_precision',
-          projectsResponse.model_config?.yolo_default_precision,
-        )
+        if (projectsResponse.model_config?.yolo_default_precision) {
+          setValue(
+            'yolo_default_precision',
+            projectsResponse.model_config.yolo_default_precision,
+          )
+        }
 
         if (projectsResponse.time_start) {
           setValue(
