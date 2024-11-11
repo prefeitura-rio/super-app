@@ -22,5 +22,9 @@ export async function getProjectsAction() {
 
   const projects: Project[] = await response.json()
 
-  return projects
+  const sortedProjects = projects.sort(
+    (a, b) => Number(b.enable) - Number(a.enable),
+  )
+
+  return sortedProjects
 }
