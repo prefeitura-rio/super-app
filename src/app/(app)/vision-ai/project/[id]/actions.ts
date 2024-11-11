@@ -1,5 +1,6 @@
 'use server'
 
+import {} from 'date-fns'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
@@ -47,13 +48,10 @@ export async function updateProjectAction(props: UpdateProject) {
 
 export async function formatCurrentDateTime(time: string) {
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
 
-  const splited = time.split(':')
+  const utcTodayWithTimeStr = `${today.toISOString().split('T')[0]}T${time}`
 
-  const hour = parseInt(splited[0]) - 3 // Converte para o horário de Brasília
-  const minute = parseInt(splited[1])
+  const newDate = new Date(utcTodayWithTimeStr)
 
-  today.setHours(hour, minute)
-  return today
+  return newDate
 }
