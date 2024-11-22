@@ -31,6 +31,7 @@ import { deleteNotificationChannel } from '@/http/notification-channel/delete-no
 import { updateNotificationChannel } from '@/http/notification-channel/update-notification-channel'
 import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'
+import type { NotificationChannel } from '@/models/entities'
 
 export function ChannelsTable() {
   const { data: channels } = useNotificationChannels()
@@ -51,11 +52,18 @@ export function ChannelsTable() {
     setIsLoading(true)
 
     createNotificationChannel(name)
-      .then(() => {
-        queryClient.invalidateQueries({
-          queryKey: ['notification-channels'],
-        })
+      .then((newChannel) => {
         setChannelName('')
+        const cached = queryClient.getQueryData<NotificationChannel[]>([
+          'notification-channels',
+        ])
+
+        if (!cached) return
+
+        queryClient.setQueryData<NotificationChannel[]>(
+          ['notification-channels'],
+          [...cached, newChannel],
+        )
       })
       .catch(() => {
         toast.error('Erro ao criar canal. Tente novamente.')
@@ -74,11 +82,23 @@ export function ChannelsTable() {
 
     setIsLoading(true)
     updateNotificationChannel(id, name)
-      .then(() => {
-        setChannelName('')
-        queryClient.invalidateQueries({
-          queryKey: ['notification-channels'],
-        })
+      .then((updatedChannel) => {
+        const cached = queryClient.getQueryData<NotificationChannel[]>([
+          'notification-channels',
+        ])
+
+        if (!cached) return
+
+        queryClient.setQueryData<NotificationChannel[]>(
+          ['notification-channels'],
+          cached.map((cachedChannel) =>
+            cachedChannel.id === updatedChannel.id
+              ? updatedChannel
+              : cachedChannel,
+          ),
+        )
+
+        setEdittingChannel(null)
       })
       .catch(() => {
         toast.error('Erro ao editar canal. Tente novamente.')
@@ -93,10 +113,17 @@ export function ChannelsTable() {
     setIsLoading(true)
     await deleteNotificationChannel(id)
       .then(() => {
-        queryClient.invalidateQueries({
-          queryKey: ['notification-channels'],
-        })
         setIsDeleteAlertOpen(false)
+        const cached = queryClient.getQueryData<NotificationChannel[]>([
+          'notification-channels',
+        ])
+
+        if (!cached) return
+
+        queryClient.setQueryData<NotificationChannel[]>(
+          ['notification-channels'],
+          cached.filter((cachedChannel) => cachedChannel.id !== id),
+        )
       })
       .catch(() => {
         toast.error('Erro ao excluir canal. Tente novamente.')
@@ -225,13 +252,16 @@ export function ChannelsTable() {
                           }
                           className={cn(
                             'relative',
-                            isLoading && 'text-destructive',
+                            isLoading &&
+                              'text-destructive flex items-center justify-center',
                           )}
                           disabled={isLoading}
                         >
                           Continuar
                           {isLoading && (
-                            <Spinner className="absolute-centered" />
+                            <div className="absolute-centered">
+                              <Spinner className="" />
+                            </div>
                           )}
                         </Button>
                       </AlertDialogFooter>

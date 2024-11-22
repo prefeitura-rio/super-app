@@ -97,9 +97,6 @@ export default function ProjectDetails() {
     resolver: zodResolver(projectFormSchema),
   })
 
-  console.log('model', watch('model'))
-  console.log('notificationChannelId', watch('notificationChannelId'))
-
   useEffect(() => {
     async function handleRedirect() {
       await setToastDataCookie({
@@ -111,7 +108,6 @@ export default function ProjectDetails() {
     }
 
     if (project && channels && cameras) {
-      console.log('project', project)
       const channel = channels.find(
         (channel) => channel.id === project.discord_id,
       )

@@ -9,12 +9,6 @@ export default async function App() {
       <Button asChild className="w-40">
         <Link href={'/vision-ai'}>Vision AI</Link>
       </Button>
-      <Button asChild className="w-40" disabled>
-        <Link href={'/vision-ai'}>Gestão de Acesso</Link>
-      </Button>
-      <Button asChild className="w-40" disabled>
-        <Link href={'/vision-ai'}>Feed e Notificações</Link>
-      </Button>
     </div>
   )
 }
