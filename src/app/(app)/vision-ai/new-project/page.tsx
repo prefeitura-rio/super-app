@@ -35,11 +35,12 @@ import {
 } from '@/components/ui/table'
 import { TimePicker } from '@/components/ui/time-picker'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
-import { type Model, type NotificationChannel } from '@/models/entities'
+import { useNotificationChannels } from '@/hooks/use-queries/use-notification-channels'
+import { type Model } from '@/models/entities'
 import { getModelsAction } from '@/server-cache/models'
-import { getNotificationChannels } from '@/server-cache/notification-channels'
 import { redirect } from '@/utils/others/redirect'
 
+import { ChannelsManager } from '../components/channels-manager'
 import {
   type ProjectForm,
   projectFormSchema,
@@ -48,9 +49,7 @@ import { createProjectAction } from './actions'
 
 export default function Page() {
   const [models, setModels] = useState<Model[]>([])
-  const [notificationChannels, setNotificationChannels] = useState<
-    NotificationChannel[]
-  >([])
+  const { data: notificationChannels } = useNotificationChannels()
 
   const {
     layers: {
@@ -72,7 +71,7 @@ export default function Page() {
   })
 
   async function onSubmit(data: ProjectForm) {
-    const channel = notificationChannels.find(
+    const channel = notificationChannels?.find(
       (c) => c.id === data.notificationChannelId,
     )
     if (!channel) throw new Error('Canal de notificação não encontrado.')
@@ -97,16 +96,10 @@ export default function Page() {
   }
 
   useEffect(() => {
-    async function initializeData() {
-      getModelsAction().then((data) => {
-        setModels(data)
-        return data
-      })
-      getNotificationChannels().then((data) => {
-        setNotificationChannels(data)
-      })
-    }
-    initializeData()
+    getModelsAction().then((data) => {
+      setModels(data)
+      return data
+    })
   }, [])
 
   return (
@@ -196,7 +189,16 @@ export default function Page() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {notificationChannels.map((channel, index) => (
+                      <ChannelsManager />
+                      {notificationChannels &&
+                        notificationChannels.length === 0 && (
+                          <div className="w-full flex">
+                            <span className="w-full text-center text-muted-foreground">
+                              Nenhum canal cadastrado
+                            </span>
+                          </div>
+                        )}
+                      {notificationChannels?.map((channel, index) => (
                         <SelectItem key={index} value={channel.id}>
                           {channel.name}
                         </SelectItem>
@@ -221,7 +223,7 @@ export default function Page() {
               <Input
                 type="number"
                 id="precision"
-                placeholder="0.7"
+                placeholder="0.4"
                 step={0.001}
                 {...register('yolo_default_precision', { valueAsNumber: true })}
               />

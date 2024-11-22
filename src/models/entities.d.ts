@@ -71,7 +71,8 @@ export type NotificationChannel = {
   id: string
   name: string
   channel_id: string
-  channel_token: string
+  webhook_id: string
+  webhook_token: string
 }
 
 export type School = {

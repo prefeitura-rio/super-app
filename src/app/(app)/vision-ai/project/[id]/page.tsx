@@ -45,6 +45,7 @@ import { getProjectAction } from '@/server-cache/project'
 import { setToastDataCookie } from '@/utils/others/cookie-handlers'
 import { redirect } from '@/utils/others/redirect'
 
+import { ChannelsManager } from '../../components/channels-manager'
 import {
   type ProjectForm,
   projectFormSchema,
@@ -271,6 +272,7 @@ export default function ProjectDetails() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
+                      <ChannelsManager />
                       {notificationChannels?.map((channel, index) => (
                         <SelectItem key={index} value={channel.id}>
                           {channel.name}

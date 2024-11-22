@@ -10,6 +10,10 @@ export async function getProjectsAction() {
   const token = cookieStore.get('token')?.value
 
   const response = await fetch(`${env.VISION_AI_API_URL}/project`, {
+    next: {
+      tags: ['projects'],
+      revalidate: 60,
+    },
     headers: {
       Authorization: `Bearer ${token}`,
     },
