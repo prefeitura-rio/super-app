@@ -54,7 +54,6 @@ import {
   type ProjectForm,
   projectFormSchema,
 } from '../../components/schemas/project-schema'
-import { formatCurrentDateTime } from './actions'
 
 export default function ProjectDetails() {
   const {
@@ -98,6 +97,9 @@ export default function ProjectDetails() {
     resolver: zodResolver(projectFormSchema),
   })
 
+  console.log('model', watch('model'))
+  console.log('notificationChannelId', watch('notificationChannelId'))
+
   useEffect(() => {
     async function handleRedirect() {
       await setToastDataCookie({
@@ -108,54 +110,51 @@ export default function ProjectDetails() {
       await redirect('/vision-ai')
     }
 
-    async function initializeData() {
-      if (project && channels && cameras) {
-        const channel = channels.find(
-          (channel) => channel.id === project.discord_id,
+    if (project && channels && cameras) {
+      console.log('project', project)
+      const channel = channels.find(
+        (channel) => channel.id === project.discord_id,
+      )
+
+      if (!channel) {
+        toast.error(
+          'Canal de notificação não encontrado. Por favor, selecione um canal válido ou crie um novo.',
         )
-
-        if (!channel) {
-          toast.error(
-            'Canal de notificação não encontrado. Por favor, selecione um canal válido ou crie um novo.',
-          )
-        } else {
-          setValue('notificationChannelId', channel.id)
-        }
-
-        setValue('name', project.name)
-        setValue('model', project.model)
-        setValue('enabled', project.enable)
-        setValue('yolo_crowd_count', project.model_config?.yolo_crowd_count)
-        if (project.model_config?.yolo_default_precision) {
-          setValue(
-            'yolo_default_precision',
-            project.model_config.yolo_default_precision,
-          )
-        }
-
-        if (project.time_start) {
-          setValue('startTime', await formatCurrentDateTime(project.time_start))
-        }
-        if (project.time_end) {
-          setValue('endTime', await formatCurrentDateTime(project.time_end))
-        }
-
-        setSelectedCameras(
-          cameras.filter((camera) => project.cameras_id.includes(camera.id)),
-        )
-
-        setIsInitializingData(false)
+      } else {
+        setValue('notificationChannelId', channel.id)
       }
 
-      if (
-        errorProject &&
-        errorProject.message === 'Request failed with status code 404'
-      ) {
-        await handleRedirect()
+      setValue('name', project.name)
+      setValue('model', project.model)
+      setValue('enabled', project.enable)
+      setValue('yolo_crowd_count', project.model_config?.yolo_crowd_count)
+      if (project.model_config?.yolo_default_precision) {
+        setValue(
+          'yolo_default_precision',
+          project.model_config.yolo_default_precision,
+        )
       }
+
+      if (project.time_start) {
+        setValue('startTime', formatCurrentDateTime(project.time_start))
+      }
+      if (project.time_end) {
+        setValue('endTime', formatCurrentDateTime(project.time_end))
+      }
+
+      setSelectedCameras(
+        cameras.filter((camera) => project.cameras_id.includes(camera.id)),
+      )
+
+      setIsInitializingData(false)
     }
 
-    initializeData()
+    if (
+      errorProject &&
+      errorProject.message === 'Request failed with status code 404'
+    ) {
+      handleRedirect()
+    }
   }, [
     cameras,
     id,
@@ -165,6 +164,16 @@ export default function ProjectDetails() {
     channels,
     errorProject,
   ])
+
+  function formatCurrentDateTime(time: string) {
+    const today = new Date()
+
+    const utcTodayWithTimeStr = `${today.toISOString().split('T')[0]}T${time}`
+
+    const newDate = new Date(utcTodayWithTimeStr)
+
+    return newDate
+  }
 
   async function onSubmit(data: ProjectForm) {
     const channel = channels?.find(
@@ -288,7 +297,7 @@ export default function ProjectDetails() {
               render={({ field }) => (
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   disabled={isInitializingData || isPendingUpdate}
                 >
                   <SelectTrigger id="model" className="w-full">
@@ -351,7 +360,7 @@ export default function ProjectDetails() {
               render={({ field }) => (
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                   disabled={isInitializingData || isPendingUpdate}
                 >
                   <SelectTrigger id="notificationChannelId" className="w-full">
