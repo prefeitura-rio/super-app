@@ -98,6 +98,7 @@ export default function ProjectDetails() {
   })
 
   useEffect(() => {
+    console.log('init')
     async function handleRedirect() {
       await setToastDataCookie({
         type: 'error',
@@ -108,6 +109,7 @@ export default function ProjectDetails() {
     }
 
     if (project && channels && cameras) {
+      console.log('model', project.model)
       const channel = channels.find(
         (channel) => channel.id === project.discord_id,
       )
@@ -294,6 +296,7 @@ export default function ProjectDetails() {
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
+                  defaultValue={project?.model}
                   disabled={isInitializingData || isPendingUpdate}
                 >
                   <SelectTrigger id="model" className="w-full">
@@ -357,6 +360,7 @@ export default function ProjectDetails() {
                 <Select
                   onValueChange={field.onChange}
                   value={field.value}
+                  defaultValue={project?.discord_id}
                   disabled={isInitializingData || isPendingUpdate}
                 >
                   <SelectTrigger id="notificationChannelId" className="w-full">
