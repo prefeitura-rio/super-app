@@ -1,11 +1,13 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Navigation, X } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
+import { AlertCircle, Navigation, X } from 'lucide-react'
 import Link from 'next/link'
-import { useContext, useEffect, useState } from 'react'
+import { useContext } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import { Spinner } from '@/components/custom/spinner'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -35,9 +37,13 @@ import {
 } from '@/components/ui/table'
 import { TimePicker } from '@/components/ui/time-picker'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
+import { useModels } from '@/hooks/use-queries/use-models'
 import { useNotificationChannels } from '@/hooks/use-queries/use-notification-channels'
-import { type Model } from '@/models/entities'
-import { getModelsAction } from '@/server-cache/models'
+import {
+  createProject,
+  type CreateProjectProps,
+} from '@/http/projects/create-project'
+import { queryClient } from '@/lib/react-query'
 import { redirect } from '@/utils/others/redirect'
 
 import { ChannelsManager } from '../components/channels-manager'
@@ -45,11 +51,25 @@ import {
   type ProjectForm,
   projectFormSchema,
 } from '../components/schemas/project-schema'
-import { createProjectAction } from './actions'
 
 export default function Page() {
-  const [models, setModels] = useState<Model[]>([])
-  const { data: notificationChannels } = useNotificationChannels()
+  const {
+    data: channels,
+    isPending: isPendingChannels,
+    error: errorChannels,
+  } = useNotificationChannels()
+  const {
+    data: models,
+    isPending: isPendingModels,
+    error: errorModels,
+  } = useModels()
+
+  const { mutateAsync: createProjectFn } = useMutation(
+    {
+      mutationFn: createProject,
+    },
+    queryClient,
+  )
 
   const {
     layers: {
@@ -71,9 +91,7 @@ export default function Page() {
   })
 
   async function onSubmit(data: ProjectForm) {
-    const channel = notificationChannels?.find(
-      (c) => c.id === data.notificationChannelId,
-    )
+    const channel = channels?.find((c) => c.id === data.notificationChannelId)
     if (!channel) throw new Error('Canal de notificação não encontrado.')
 
     const payload = {
@@ -88,19 +106,17 @@ export default function Page() {
         yolo_send_message: data.yolo_send_message,
         yolo_crowd_count: data.yolo_crowd_count,
       },
-    }
+    } as CreateProjectProps
 
-    const project = await createProjectAction(payload)
+    const project = await createProjectFn(payload)
+
+    // Update Projects cache
+    queryClient.invalidateQueries({
+      queryKey: ['projects'],
+    })
 
     await redirect(`/vision-ai/project/${project.id}`)
   }
-
-  useEffect(() => {
-    getModelsAction().then((data) => {
-      setModels(data)
-      return data
-    })
-  }, [])
 
   return (
     <form
@@ -156,7 +172,31 @@ export default function Page() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {models.map((model, index) => (
+                      {isPendingModels && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">
+                            Carregando...
+                          </span>
+                          <Spinner />
+                        </div>
+                      )}
+                      {models && models.length === 0 && (
+                        <div className="w-full flex">
+                          <span className="w-full text-center text-muted-foreground">
+                            Nenhum modelo cadastrado
+                          </span>
+                        </div>
+                      )}
+                      {!isPendingModels && errorModels && (
+                        <div className="w-full flex items-center gap-2 text-destructive">
+                          <AlertCircle className="size-4" />
+                          <span className="text-sm">
+                            Erro ao carregar modelos. Recarregue a página e
+                            tente novamente.
+                          </span>
+                        </div>
+                      )}
+                      {models?.map((model, index) => (
                         <SelectItem key={index} value={model.model}>
                           {model.model}
                         </SelectItem>
@@ -190,15 +230,31 @@ export default function Page() {
                   <SelectContent>
                     <SelectGroup>
                       <ChannelsManager />
-                      {notificationChannels &&
-                        notificationChannels.length === 0 && (
-                          <div className="w-full flex">
-                            <span className="w-full text-center text-muted-foreground">
-                              Nenhum canal cadastrado
-                            </span>
-                          </div>
-                        )}
-                      {notificationChannels?.map((channel, index) => (
+                      {isPendingChannels && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">
+                            Carregando...
+                          </span>
+                          <Spinner />
+                        </div>
+                      )}
+                      {channels && channels.length === 0 && (
+                        <div className="w-full flex">
+                          <span className="w-full text-center text-muted-foreground">
+                            Nenhum canal cadastrado
+                          </span>
+                        </div>
+                      )}
+                      {!isPendingChannels && errorChannels && (
+                        <div className="w-full flex items-center gap-2 text-destructive">
+                          <AlertCircle className="size-4" />
+                          <span className="text-sm">
+                            Erro ao carregar canais. Recarregue a página e tente
+                            novamente.
+                          </span>
+                        </div>
+                      )}
+                      {channels?.map((channel, index) => (
                         <SelectItem key={index} value={channel.id}>
                           {channel.name}
                         </SelectItem>

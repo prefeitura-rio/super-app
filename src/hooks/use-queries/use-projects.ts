@@ -2,14 +2,14 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { getNotificationChannels } from '@/http/notification-channel/get-notification-channels'
+import { getProjects } from '@/http/projects/get-projects'
 import { queryClient } from '@/lib/react-query'
 
-export function useNotificationChannels() {
+export function useProjects() {
   return useQuery(
     {
-      queryKey: ['notification-channels'],
-      queryFn: getNotificationChannels,
+      queryKey: ['projects'],
+      queryFn: getProjects,
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 10, // 10 minutes
     },

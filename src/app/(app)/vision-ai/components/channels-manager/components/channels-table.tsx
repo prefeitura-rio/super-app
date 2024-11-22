@@ -26,10 +26,11 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useNotificationChannels } from '@/hooks/use-queries/use-notification-channels'
+import { createNotificationChannel } from '@/http/notification-channel/create-notification-channel'
+import { deleteNotificationChannel } from '@/http/notification-channel/delete-notification-channel'
+import { updateNotificationChannel } from '@/http/notification-channel/update-notification-channel'
 import { queryClient } from '@/lib/react-query'
 import { cn } from '@/lib/utils'
-
-import { addChannel, deleteChannel, editChannel } from './actions'
 
 export function ChannelsTable() {
   const { data: channels } = useNotificationChannels()
@@ -49,7 +50,7 @@ export function ChannelsTable() {
 
     setIsLoading(true)
 
-    addChannel(name)
+    createNotificationChannel(name)
       .then(() => {
         queryClient.invalidateQueries({
           queryKey: ['notification-channels'],
@@ -72,7 +73,7 @@ export function ChannelsTable() {
     }
 
     setIsLoading(true)
-    editChannel(id, name)
+    updateNotificationChannel(id, name)
       .then(() => {
         setChannelName('')
         queryClient.invalidateQueries({
@@ -90,7 +91,7 @@ export function ChannelsTable() {
 
   async function handleDeleteChannel(id: string) {
     setIsLoading(true)
-    await deleteChannel(id)
+    await deleteNotificationChannel(id)
       .then(() => {
         queryClient.invalidateQueries({
           queryKey: ['notification-channels'],

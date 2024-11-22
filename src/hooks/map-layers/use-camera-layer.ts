@@ -2,20 +2,15 @@
 
 import type { LayersList } from '@deck.gl/core'
 import { IconLayer } from '@deck.gl/layers'
-import {
-  type Dispatch,
-  type SetStateAction,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { type Dispatch, type SetStateAction, useMemo, useState } from 'react'
 
 import cameraIconAtlas from '@/assets/camera-icon-atlas.png'
 import type { Camera } from '@/models/entities'
-import { getCamerasAction } from '@/server-cache/cameras'
+
+import { useCameras } from '../use-queries/use-cameras'
 
 export interface UseCameraLayer {
-  cameras: Camera[]
+  cameras: Camera[] | undefined
   selectedCameras: Camera[]
   setSelectedCameras: Dispatch<SetStateAction<Camera[]>>
   layers: LayersList
@@ -25,16 +20,9 @@ export interface UseCameraLayer {
 }
 export function useCameraLayer(): UseCameraLayer {
   const [selectedCameras, setSelectedCameras] = useState<Camera[]>([])
-  const [cameras, setCameras] = useState<Camera[]>([])
   const [isVisible, setIsVisible] = useState(true)
 
-  useEffect(() => {
-    const fetchCameras = async () => {
-      const data = await getCamerasAction()
-      setCameras(data)
-    }
-    fetchCameras()
-  }, [])
+  const { data: cameras } = useCameras()
 
   function onIconClick(camera: Camera) {
     const selectedObject = selectedCameras.find((c) => c.id === camera.id)

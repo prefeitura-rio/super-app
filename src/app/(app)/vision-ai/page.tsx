@@ -1,15 +1,19 @@
-import { Pencil, Plus } from 'lucide-react'
+'use client'
+
+import { AlertCircle, Pencil, Plus } from 'lucide-react'
 import Link from 'next/link'
 
+import { Spinner } from '@/components/custom/spinner'
 import { Tooltip } from '@/components/custom/tooltip'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { getProjectsAction } from '@/server-cache/projects'
+import { useProjects } from '@/hooks/use-queries/use-projects'
 import { ToastHandler } from '@/utils/others/toast-handler'
 
-export default async function SidePanel() {
-  const projects = await getProjectsAction()
+export default function SidePanel() {
+  const { data: projects, isPending, error } = useProjects()
 
   return (
     <div className="relative w-full h-screen max-h-screen px-4 py-2 flex flex-col gap-4">
@@ -17,7 +21,23 @@ export default async function SidePanel() {
       <h3 className="text-2xl font-bold">Projetos</h3>
       <ScrollArea className="h-[calc(100%-3rem)]" type="hover">
         <div className="flex flex-col gap-2 h-full">
-          {projects.map((project, index) => (
+          {isPending && (
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Carregando...</span>
+              <Spinner />
+            </div>
+          )}
+          {!isPending && error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                Não foi possível carregar os projetos. Por favor, tente
+                novamente.
+              </AlertDescription>
+            </Alert>
+          )}
+          {projects?.map((project, index) => (
             <Card key={index} className="p-6 flex justify-between items-center">
               <div className="flex gap-1 flex-col">
                 <span className="block">{project.name}</span>

@@ -2,14 +2,14 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { getNotificationChannels } from '@/http/notification-channel/get-notification-channels'
+import { getCameras } from '@/http/cameras/get-cameras'
 import { queryClient } from '@/lib/react-query'
 
-export function useNotificationChannels() {
+export function useCameras() {
   return useQuery(
     {
-      queryKey: ['notification-channels'],
-      queryFn: getNotificationChannels,
+      queryKey: ['cameras'],
+      queryFn: getCameras,
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 10, // 10 minutes
     },
