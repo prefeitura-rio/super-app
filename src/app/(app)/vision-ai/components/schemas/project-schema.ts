@@ -3,13 +3,15 @@ import { z } from 'zod'
 export const projectFormSchema = z
   .object({
     name: z.string().min(1, { message: 'O nome do projeto é obrigatório.' }),
-    model: z.string().min(1),
+    model: z.string().min(1, { message: 'O modelo é obrigatório.' }),
     enabled: z.boolean(),
-    notificationChannelId: z.string().min(1),
+    notificationChannelId: z
+      .string()
+      .min(1, { message: 'O canal é obrigatório.' }),
     startTime: z.date().optional(),
     endTime: z.date().optional(),
     yolo_default_precision: z.coerce
-      .number({ message: 'Obrigatório' })
+      .number({ message: 'A precisão é obrigatória' })
       .min(0, { message: 'Deve ser entre 0 e 1' })
       .max(1, { message: 'Deve ser entre 0 e 1' }),
     yolo_send_message: z.boolean().optional(),

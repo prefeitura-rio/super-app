@@ -26,7 +26,7 @@ export type Project = {
     yolo_discord_webhook_id?: string
     yolo_discord_webhook_token?: string
     yolo_send_message?: boolean
-  } | null
+  }
   cameras_id: string[]
   time_start: string | null
   time_end: string | null
@@ -71,7 +71,8 @@ export type NotificationChannel = {
   id: string
   name: string
   channel_id: string
-  channel_token: string
+  webhook_id: string
+  webhook_token: string
 }
 
 export type School = {
@@ -96,4 +97,12 @@ export type BusStop = {
   nome_parada: string
   longitude: number
   latitude: number
+}
+
+export type ApiResponseDetail = {
+  detail: {
+    loc: [string, number]
+    msg: string
+    type: string
+  }[]
 }

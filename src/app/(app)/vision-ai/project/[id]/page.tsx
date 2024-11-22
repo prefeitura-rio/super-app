@@ -1,11 +1,13 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Navigation, X } from 'lucide-react'
+import { useMutation } from '@tanstack/react-query'
+import { AlertCircle, Navigation, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Spinner } from '@/components/custom/spinner'
 import {
@@ -38,18 +40,21 @@ import {
 } from '@/components/ui/table'
 import { TimePicker } from '@/components/ui/time-picker'
 import { VisionAIMapContext } from '@/contexts/vision-ai/map-context'
-import type { Model, NotificationChannel, Project } from '@/models/entities'
-import { getModelsAction } from '@/server-cache/models'
-import { getNotificationChannels } from '@/server-cache/notification-channels'
-import { getProjectAction } from '@/server-cache/project'
+import { useModels } from '@/hooks/use-queries/use-models'
+import { useNotificationChannels } from '@/hooks/use-queries/use-notification-channels'
+import { useProject } from '@/hooks/use-queries/use-project'
+import { updateProject } from '@/http/projects/update-project'
+import { queryClient } from '@/lib/react-query'
+import type { Project } from '@/models/entities'
 import { setToastDataCookie } from '@/utils/others/cookie-handlers'
 import { redirect } from '@/utils/others/redirect'
 
+import { ChannelsManager } from '../../components/channels-manager'
 import {
   type ProjectForm,
   projectFormSchema,
 } from '../../components/schemas/project-schema'
-import { formatCurrentDateTime, updateProjectAction } from './actions'
+import { formatCurrentDateTime } from './actions'
 
 export default function ProjectDetails() {
   const {
@@ -58,14 +63,29 @@ export default function ProjectDetails() {
     },
     flyTo,
   } = useContext(VisionAIMapContext)
-  const [loading, setLoading] = useState(true)
+  const [isInitializingData, setIsInitializingData] = useState(true)
   const pathname = usePathname()
   const id = pathname.replace('/vision-ai/project/', '')
-  const [project, setProject] = useState<Project | undefined>(undefined)
-  const [models, setModels] = useState<Model[] | undefined>(undefined)
-  const [notificationChannels, setNotificationChannels] = useState<
-    NotificationChannel[] | undefined
-  >(undefined)
+
+  const {
+    data: channels,
+    isPending: isPendingChannels,
+    error: errorChannels,
+  } = useNotificationChannels()
+  const {
+    data: models,
+    isPending: isPendingModels,
+    error: errorModels,
+  } = useModels()
+  const { data: project, error: errorProject } = useProject(id)
+
+  const { mutateAsync: updateProjectFn, isPending: isPendingUpdate } =
+    useMutation(
+      {
+        mutationFn: updateProject,
+      },
+      queryClient,
+    )
 
   const {
     handleSubmit,
@@ -89,74 +109,73 @@ export default function ProjectDetails() {
     }
 
     async function initializeData() {
-      getModelsAction().then((data) => {
-        setModels(data)
-      })
-      const channels = await getNotificationChannels().then((data) => {
-        setNotificationChannels(data)
-        return data
-      })
-
-      const projectsResponse = await getProjectAction(id)
-
-      if (projectsResponse) {
-        setProject(projectsResponse)
-
-        setValue('name', projectsResponse.name)
-        setValue('model', projectsResponse.model)
-        setValue('enabled', projectsResponse.enable)
-        setValue(
-          'yolo_crowd_count',
-          projectsResponse.model_config?.yolo_crowd_count,
+      if (project && channels && cameras) {
+        const channel = channels.find(
+          (channel) => channel.id === project.discord_id,
         )
-        if (projectsResponse.model_config?.yolo_default_precision) {
+
+        if (!channel) {
+          toast.error(
+            'Canal de notificação não encontrado. Por favor, selecione um canal válido ou crie um novo.',
+          )
+        } else {
+          setValue('notificationChannelId', channel.id)
+        }
+
+        setValue('name', project.name)
+        setValue('model', project.model)
+        setValue('enabled', project.enable)
+        setValue('yolo_crowd_count', project.model_config?.yolo_crowd_count)
+        if (project.model_config?.yolo_default_precision) {
           setValue(
             'yolo_default_precision',
-            projectsResponse.model_config.yolo_default_precision,
+            project.model_config.yolo_default_precision,
           )
         }
 
-        if (projectsResponse.time_start) {
-          setValue(
-            'startTime',
-            await formatCurrentDateTime(projectsResponse.time_start),
-          )
+        if (project.time_start) {
+          setValue('startTime', await formatCurrentDateTime(project.time_start))
         }
-        if (projectsResponse.time_end) {
-          setValue(
-            'endTime',
-            await formatCurrentDateTime(projectsResponse.time_end),
-          )
+        if (project.time_end) {
+          setValue('endTime', await formatCurrentDateTime(project.time_end))
         }
-
-        const channel = channels.find(
-          (channel) => channel.id === projectsResponse.discord_id,
-        )
-
-        if (!channel) throw new Error('Canal de notificação não encontrado')
-
-        setValue('notificationChannelId', channel.id)
 
         setSelectedCameras(
-          cameras.filter((camera) =>
-            projectsResponse.cameras_id.includes(camera.id),
-          ),
+          cameras.filter((camera) => project.cameras_id.includes(camera.id)),
         )
 
-        setLoading(false)
-      } else {
+        setIsInitializingData(false)
+      }
+
+      if (
+        errorProject &&
+        errorProject.message === 'Request failed with status code 404'
+      ) {
         await handleRedirect()
       }
     }
 
     initializeData()
-  }, [cameras, id, setSelectedCameras, setValue])
+  }, [
+    cameras,
+    id,
+    setSelectedCameras,
+    setValue,
+    project,
+    channels,
+    errorProject,
+  ])
 
   async function onSubmit(data: ProjectForm) {
-    const channel = notificationChannels?.find(
+    const channel = channels?.find(
       (channel) => channel.id === data.notificationChannelId,
     )
-    if (!channel) throw new Error('Canal de notificação não encontrado')
+    if (!channel) {
+      toast.error(
+        'Canal de notificação não encontrado. Por favor, selecione um canal válido ou crie um novo.',
+      )
+      return
+    }
 
     const payload = {
       id,
@@ -172,14 +191,43 @@ export default function ProjectDetails() {
         yolo_send_message: data.yolo_send_message,
         yolo_crowd_count: data.yolo_crowd_count,
       },
+    } as Project
+
+    const updatedProject = await updateProjectFn(payload)
+
+    // Update Project cache
+    const projectCached = queryClient.getQueryData<Project>([
+      'project',
+      payload.id,
+    ])
+
+    if (!projectCached) {
+      return
     }
 
-    await updateProjectAction(payload)
+    queryClient.setQueryData<Project>(
+      ['project', payload.id],
+      payload as Project,
+    )
+
+    // Update Projects cache
+    const projectsCached = queryClient.getQueryData<Project[]>(['projects'])
+
+    if (!projectsCached) {
+      return
+    }
+
+    queryClient.setQueryData<Project[]>(
+      ['projects'],
+      projectsCached.map((p) =>
+        p.id === payload.id ? updatedProject : p,
+      ) as Project[],
+    )
+
+    redirect('/vision-ai')
   }
 
-  return loading ? (
-    <Spinner className="mx-auto mt-10 size-6" />
-  ) : (
+  return (
     <form
       className="flex flex-col gap-2 h-screen max-h-screen px-4 py-2"
       onSubmit={handleSubmit(onSubmit)}
@@ -194,11 +242,21 @@ export default function ProjectDetails() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{project?.name}</BreadcrumbPage>
+              <BreadcrumbPage>
+                {isInitializingData ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground">Carregando...</span>
+                    <Spinner />
+                  </div>
+                ) : (
+                  project?.name
+                )}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
         <h3 className="mt-4 mb-2 text-2xl font-bold">Editar Projeto</h3>
+
         <div className="flex flex-col gap-4 h-full">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
@@ -209,7 +267,11 @@ export default function ProjectDetails() {
                 </span>
               )}
             </div>
-            <Input id="name" {...register('name')} />
+            <Input
+              id="name"
+              {...register('name')}
+              disabled={isInitializingData || isPendingUpdate}
+            />
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 h-3.5">
@@ -227,12 +289,37 @@ export default function ProjectDetails() {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isInitializingData || isPendingUpdate}
                 >
                   <SelectTrigger id="model" className="w-full">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
+                      {isPendingModels && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">
+                            Carregando...
+                          </span>
+                          <Spinner />
+                        </div>
+                      )}
+                      {models && models.length === 0 && (
+                        <div className="w-full flex">
+                          <span className="w-full text-center text-muted-foreground">
+                            Nenhum modelo cadastrado
+                          </span>
+                        </div>
+                      )}
+                      {!isPendingModels && errorModels && (
+                        <div className="w-full flex items-center gap-2 text-destructive">
+                          <AlertCircle className="size-4" />
+                          <span className="text-sm">
+                            Erro ao carregar modelos. Recarregue a página e
+                            tente novamente.
+                          </span>
+                        </div>
+                      )}
                       {models ? (
                         models.map((model, index) => (
                           <SelectItem key={index} value={model.model}>
@@ -265,13 +352,39 @@ export default function ProjectDetails() {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={isInitializingData || isPendingUpdate}
                 >
                   <SelectTrigger id="notificationChannelId" className="w-full">
                     <SelectValue placeholder="" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {notificationChannels?.map((channel, index) => (
+                      {channels && <ChannelsManager />}
+                      {isPendingChannels && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">
+                            Carregando...
+                          </span>
+                          <Spinner />
+                        </div>
+                      )}
+                      {channels && channels.length === 0 && (
+                        <div className="w-full flex">
+                          <span className="w-full text-center text-muted-foreground">
+                            Nenhum canal cadastrado
+                          </span>
+                        </div>
+                      )}
+                      {!isPendingChannels && errorChannels && (
+                        <div className="w-full flex items-center gap-2 text-destructive">
+                          <AlertCircle className="size-4" />
+                          <span className="text-sm">
+                            Erro ao carregar canais. Recarregue a página e tente
+                            novamente.
+                          </span>
+                        </div>
+                      )}
+                      {channels?.map((channel, index) => (
                         <SelectItem key={index} value={channel.id}>
                           {channel.name}
                         </SelectItem>
@@ -297,7 +410,10 @@ export default function ProjectDetails() {
                 type="number"
                 id="precision"
                 step={0.001}
-                {...register('yolo_default_precision', { valueAsNumber: true })}
+                {...register('yolo_default_precision', {
+                  valueAsNumber: true,
+                })}
+                disabled={isInitializingData || isPendingUpdate}
               />
             </div>
             {watch('model') === 'CROWD' && (
@@ -316,6 +432,7 @@ export default function ProjectDetails() {
                   type="number"
                   id="yolo_crowd_count"
                   {...register('yolo_crowd_count')}
+                  disabled={isInitializingData || isPendingUpdate}
                 />
               </div>
             )}
@@ -331,6 +448,7 @@ export default function ProjectDetails() {
                   id="enabled"
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={isInitializingData || isPendingUpdate}
                 />
               )}
             />
@@ -350,6 +468,7 @@ export default function ProjectDetails() {
                       onChange={field.onChange}
                       clearButton
                       showIcon={false}
+                      disabled={isInitializingData || isPendingUpdate}
                     />
                   </div>
                 )}
@@ -368,6 +487,7 @@ export default function ProjectDetails() {
                       onChange={field.onChange}
                       clearButton
                       showIcon={false}
+                      disabled={isInitializingData || isPendingUpdate}
                     />
                   </div>
                 )}
@@ -434,10 +554,18 @@ export default function ProjectDetails() {
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <Button variant="secondary" type="submit">
+        <Button
+          variant="secondary"
+          type="submit"
+          disabled={isInitializingData || isPendingUpdate}
+        >
           Atualizar Projeto
         </Button>
-        <Button variant="ghost" asChild>
+        <Button
+          variant="ghost"
+          asChild
+          disabled={isInitializingData || isPendingUpdate}
+        >
           <Link href="/vision-ai">Candelar Edição</Link>
         </Button>
       </div>
