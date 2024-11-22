@@ -5,16 +5,6 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Spinner } from '@/components/custom/spinner'
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -27,10 +17,8 @@ import {
 } from '@/components/ui/table'
 import { useNotificationChannels } from '@/hooks/use-queries/use-notification-channels'
 import { createNotificationChannel } from '@/http/notification-channel/create-notification-channel'
-import { deleteNotificationChannel } from '@/http/notification-channel/delete-notification-channel'
 import { updateNotificationChannel } from '@/http/notification-channel/update-notification-channel'
 import { queryClient } from '@/lib/react-query'
-import { cn } from '@/lib/utils'
 import type { NotificationChannel } from '@/models/entities'
 
 export function ChannelsTable() {
@@ -39,7 +27,7 @@ export function ChannelsTable() {
   const [edittingChannel, setEdittingChannel] = useState<string | null>(null)
   const [channelName, setChannelName] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
-  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
+  // const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
   const newChannelInputRef = useRef<HTMLInputElement>(null)
   const editChannelInputRef = useRef<HTMLInputElement>(null)
 
@@ -109,27 +97,27 @@ export function ChannelsTable() {
       })
   }
 
-  async function handleDeleteChannel(id: string) {
-    setIsLoading(true)
-    await deleteNotificationChannel(id)
-      .then(() => {
-        setIsDeleteAlertOpen(false)
-        const cached = queryClient.getQueryData<NotificationChannel[]>([
-          'notification-channels',
-        ])
+  // async function handleDeleteChannel(id: string) {
+  //   setIsLoading(true)
+  //   await deleteNotificationChannel(id)
+  //     .then(() => {
+  //       setIsDeleteAlertOpen(false)
+  //       const cached = queryClient.getQueryData<NotificationChannel[]>([
+  //         'notification-channels',
+  //       ])
 
-        if (!cached) return
+  //       if (!cached) return
 
-        queryClient.setQueryData<NotificationChannel[]>(
-          ['notification-channels'],
-          cached.filter((cachedChannel) => cachedChannel.id !== id),
-        )
-      })
-      .catch(() => {
-        toast.error('Erro ao excluir canal. Tente novamente.')
-      })
-      .finally(() => setIsLoading(false))
-  }
+  //       queryClient.setQueryData<NotificationChannel[]>(
+  //         ['notification-channels'],
+  //         cached.filter((cachedChannel) => cachedChannel.id !== id),
+  //       )
+  //     })
+  //     .catch(() => {
+  //       toast.error('Erro ao excluir canal. Tente novamente.')
+  //     })
+  //     .finally(() => setIsLoading(false))
+  // }
 
   function handleOpenNewChannelInput() {
     setChannelName('')
@@ -215,12 +203,12 @@ export function ChannelsTable() {
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <AlertDialog
+                  {/* <AlertDialog
                     open={isDeleteAlertOpen}
                     onOpenChange={setIsDeleteAlertOpen}
                   >
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon" disabled={isLoading}>
+                      <Button disabled variant="ghost" size="icon">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>
@@ -266,7 +254,7 @@ export function ChannelsTable() {
                         </Button>
                       </AlertDialogFooter>
                     </AlertDialogContent>
-                  </AlertDialog>
+                  </AlertDialog> */}
                 </TableCell>
               </TableRow>
             ),
